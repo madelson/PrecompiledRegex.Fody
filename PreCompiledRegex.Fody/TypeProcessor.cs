@@ -13,16 +13,16 @@ namespace PreCompiledRegex.Fody
 {
     internal sealed class TypeProcessor
     {
-        private readonly RegexMethods regexMethods;
         private readonly WeavingContext context;
+        private readonly RegexReferenceFinder referenceFinder;
 
-        private readonly Dictionary<MethodDefinition, List<KeyValuePair<string, RegexOptions>>> constantRegularExpressionsByMethod
-            = new Dictionary<MethodDefinition, List<KeyValuePair<string, RegexOptions>>>();
+        private readonly Dictionary<MethodDefinition, List<RegexDefinition>> replacableRegexDefinitionsByMethod
+            = new Dictionary<MethodDefinition, List<RegexDefinition>>();
 
-        public TypeProcessor(RegexMethods regexMethods, WeavingContext context)
+        public TypeProcessor(WeavingContext context)
         {
-            this.regexMethods = regexMethods;
             this.context = context;
+            this.referenceFinder = new RegexReferenceFinder(context);
         }
 
         public void PreProcessType(TypeDefinition type)
@@ -36,14 +36,37 @@ namespace PreCompiledRegex.Fody
             }
         }
 
+        private void PreProcessMethod(MethodDefinition method)
+        {
+            if (!method.HasBody) { return; }
+
+            List<RegexDefinition> definitions = null;
+            var referenceFinder = this.referenceFinder;
+            var instructions = method.Body.Instructions;
+            for (var i = 0; i < instructions.Count; ++i)
+            {
+                var instruction = instructions[i];
+                var reference = this.referenceFinder.TryGetRegexReference(instruction);
+                if (reference != null)
+                {
+                    (definitions ?? (definitions = new List<RegexDefinition>())).Add(reference.Definition);
+                }
+            }
+
+            if (definitions != null)
+            {
+                this.replacableRegexDefinitionsByMethod.Add(method, definitions);
+            }
+        }
+
         public void PostProcessAllTypes()
         {
-            var regularExpressionsToCompile = this.constantRegularExpressionsByMethod
+            var regularExpressionsToCompile = this.replacableRegexDefinitionsByMethod
                 .SelectMany(kvp => kvp.Value)
                 .Distinct()
-                .Select((kvp, index) => new RegexCompilationInfo(
-                    pattern: kvp.Key,
-                    options: kvp.Value & ~RegexOptions.Compiled,
+                .Select((def, index) => new RegexCompilationInfo(
+                    pattern: def.Pattern,
+                    options: def.Options,
                     name: "PreCompiledRegex" + index,
                     fullnamespace: "PreCompiledRegex.Fody",
                     // TODO could do false + internals visible
@@ -75,7 +98,7 @@ namespace PreCompiledRegex.Fody
 
             if (tempAssemblyPath == null) { return; }
 
-            var module = this.constantRegularExpressionsByMethod.First().Key.Module;
+            var module = this.replacableRegexDefinitionsByMethod.First().Key.Module;
 
             // create replacement type
             var type = new TypeDefinition("PrecompiledRegex.Fody", "RegularExpressions", TypeAttributes.NotPublic | TypeAttributes.Sealed);
@@ -136,7 +159,7 @@ namespace PreCompiledRegex.Fody
             var newAssembly = AssemblyDefinition.ReadAssembly(newAssemblyPath);
             module.AssemblyReferences.Add(AssemblyNameReference.Parse(newAssembly.FullName));
 
-            var compiledRegexMethods = new Dictionary<KeyValuePair<string, RegexOptions>, MethodDefinition>();
+            var compiledRegexMethods = new Dictionary<RegexDefinition, MethodDefinition>();
             foreach (var regex in regularExpressionsToCompile)
             {
                 var field = new FieldDefinition("cached" + regex.Name, FieldAttributes.Private | FieldAttributes.Static, module.ImportReference(typeof(Regex)));
@@ -156,89 +179,42 @@ namespace PreCompiledRegex.Fody
                 il.Emit(OpCodes.Ret);
                 method.Body.OptimizeMacros();
 
-                compiledRegexMethods.Add(new KeyValuePair<string, RegexOptions>(regex.Pattern, regex.Options), method);
+                compiledRegexMethods.Add(new RegexDefinition(regex.Pattern, regex.Options), method);
             }
 
-            foreach (var referencingMethod in this.constantRegularExpressionsByMethod.Keys)
+            foreach (var referencingMethod in this.replacableRegexDefinitionsByMethod.Keys)
             {
                 this.PostProcessMethod(referencingMethod, compiledRegexMethods);
             }
         }
 
-        private void PostProcessMethod(MethodDefinition method, IReadOnlyDictionary<KeyValuePair<string, RegexOptions>, MethodDefinition> compiledRegexes)
+        private void PostProcessMethod(MethodDefinition method, Dictionary<RegexDefinition, MethodDefinition> compiledRegexes)
         {
-            var references = this.constantRegularExpressionsByMethod[method];
+            var definitions = this.replacableRegexDefinitionsByMethod[method];
 
             method.Body.SimplifyMacros();
             try
             {
-                foreach (var reference in references)
+                foreach (var definition in definitions)
                 {
-                    var referenceInstruction = method.Body.Instructions.First(this.regexMethods.IsRegexMethodReference);
-                    var kvp = PatternAndOptionsFinder.TryFindPatternAndOptions(referenceInstruction);
-                    if (kvp.HasValue)
+                    var reference = method.Body.Instructions
+                        .Select(this.referenceFinder.TryGetRegexReference)
+                        .First(@ref => @ref != null);
+
+                    var compiledRegex = compiledRegexes[reference.Definition];
+                    var il = method.Body.GetILProcessor();
+                    il.Remove(reference.PatternInstruction); // delete ldstr
+                    if (reference.OptionsInstruction != null)
                     {
-                        var compiledRegex = compiledRegexes[kvp.Value];
-                        var il = method.Body.GetILProcessor();
-                        il.Remove(referenceInstruction.Previous); // delete ldstr
-                        il.Replace(referenceInstruction, Instruction.Create(OpCodes.Call, compiledRegex));
+                        il.Remove(reference.OptionsInstruction);
                     }
+                    il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Call, compiledRegex));
                 }
             }
             finally
             {
                 method.Body.OptimizeMacros();
             }
-        }
-
-        private void PreProcessMethod(MethodDefinition method)
-        {
-            // quick checks
-            if (!method.HasBody) { return; }
-            if (!this.HasAnyRegexMethodReferences(method.Body)) { return; }
-
-            // see http://stackoverflow.com/questions/7267480/does-mono-cecil-take-care-of-branches-etc-location
-            method.Body.SimplifyMacros();
-            try
-            {
-                List<KeyValuePair<string, RegexOptions>> patterns = null;
-                foreach (var instruction in method.Body.Instructions)
-                {
-                    if (this.regexMethods.IsRegexMethodReference(instruction))
-                    {
-                        var kvp = PatternAndOptionsFinder.TryFindPatternAndOptions(instruction);
-                        if (kvp.HasValue)
-                        {
-                            (patterns = (patterns ?? new List<KeyValuePair<string, RegexOptions>>())).Add(kvp.Value);
-                        }
-                    }
-                }
-
-                if (patterns != null)
-                {
-                    this.constantRegularExpressionsByMethod.Add(method, patterns);
-                }
-            }
-            finally
-            {
-                method.Body.OptimizeMacros();
-            }
-        }
-
-        private bool HasAnyRegexMethodReferences(MethodBody body)
-        {
-            var regexMethods = this.regexMethods;
-            var instructions = body.Instructions;
-
-            for (var i = 0; i < instructions.Count; ++i)
-            {
-                if (regexMethods.IsRegexMethodReference(instructions[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

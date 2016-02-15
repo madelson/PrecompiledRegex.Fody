@@ -35,10 +35,21 @@ namespace PrecompiledRegex.Fody.Tests
                 var methods = type.GetMethods().Where(m => m.ReturnType == typeof(Regex));
                 var regex = (Regex)methods.Single().Invoke(null, new object[0]);
                 Assert.AreEqual("a", regex.ToString());
+
+                var testType = WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples");
+                Assert.IsNotNull(testType);
+                var instance = Activator.CreateInstance(testType);
+                foreach (var method in testType.GetMethods(BindingFlags.Public | BindingFlags.Static))
+                {
+                    method.Invoke(instance, new object[0]);
+                }
             }
             catch (ReflectionTypeLoadException ex)
             {
-
+                Console.WriteLine("**** BEGIN LOADER EXCEPTIONS ****");
+                foreach (var loaderException in ex.LoaderExceptions) { Console.WriteLine(loaderException); }
+                Console.WriteLine("**** END LOADER EXCEPTIONS ****");
+                throw;
             } 
         }
     }

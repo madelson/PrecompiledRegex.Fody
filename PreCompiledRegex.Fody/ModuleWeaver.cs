@@ -23,8 +23,7 @@ namespace PreCompiledRegex.Fody
         public void Execute()
         {
             var context = new WeavingContext(this);
-            var regexMethods = new RegexMethods(context);
-            var typeProcessor = new TypeProcessor(regexMethods, context);
+            var typeProcessor = new TypeProcessor(context);
 
             foreach (var type in this.ModuleDefinition.Types)
             {

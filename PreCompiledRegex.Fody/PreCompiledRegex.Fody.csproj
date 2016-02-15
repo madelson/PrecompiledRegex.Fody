@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PreCompiledRegex.Fody</RootNamespace>
     <AssemblyName>PreCompiledRegex.Fody</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
@@ -56,12 +59,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KeyValuePair.cs" />
     <Compile Include="ModuleWeaver.cs" />
-    <Compile Include="PatternAndOptionsFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegexMethods.cs" />
-    <Compile Include="RegexUsageReplacer.cs" />
+    <Compile Include="RegexDefinition.cs" />
+    <Compile Include="RegexMethod.cs" />
+    <Compile Include="RegexReference.cs" />
+    <Compile Include="RegexReferenceFinder.cs" />
+    <Compile Include="SimpleArgumentLocator.cs" />
     <Compile Include="TypeCopier.cs" />
     <Compile Include="TypeProcessor.cs" />
     <Compile Include="WeavingContext.cs" />
