@@ -13,7 +13,7 @@ namespace PreCompiledRegex.Fody
         public static bool TryFindArgumentInstructions(Instruction call, out Instruction[] arguments, out string errorMessage)
         {
             var calledMethod = ((MethodReference)call.Operand).Resolve();
-            var argumentCount = calledMethod.Parameters.Count + (calledMethod.HasThis ? 0 : 1);
+            var argumentCount = calledMethod.Parameters.Count + (calledMethod.IsStatic || calledMethod.IsConstructor ? 0 : 1);
             var argumentList = new List<Instruction>();
 
             var nextInstructionToAnalyze = call.Previous;

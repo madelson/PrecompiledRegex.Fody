@@ -244,18 +244,66 @@ namespace PreCompiledRegex.Fody
                     var reference = method.Body.Instructions
                         .Select(this.referenceFinder.TryGetRegexReference)
                         .First(@ref => @ref != null);
-
+                    var regexMethod = reference.RegexMethod;
                     var compiledRegex = compiledRegexes[reference.Definition];
+
                     var il = method.Body.GetILProcessor();
-                    il.Remove(reference.PatternInstruction); // delete ldstr
+                    il.Remove(reference.PatternInstruction);
                     if (reference.OptionsInstruction != null)
                     {
                         il.Remove(reference.OptionsInstruction);
                     }
-                    var replacementMethod = reference.RegexMethod.TimeoutParameterIndex.HasValue
+
+                    var getRegexMethod = regexMethod.TimeoutParameterIndex.HasValue
                         ? compiledRegex.TimeoutMethod
                         : compiledRegex.NoTimeoutMethod;
-                    il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Call, replacementMethod));
+                    var getRegexInstruction = Instruction.Create(OpCodes.Call, getRegexMethod);
+
+                    if (regexMethod.Method.IsConstructor)
+                    {
+                        // for a constructor, we just replace new Regex(...) with GetRegex(...)
+                        il.Replace(reference.CallInstruction, getRegexInstruction);
+                    }
+                    else
+                    {
+                        // static method calls (e. g. Regex.Replace(input, pattern, replacement, options, timeout))
+                        // are a bit more difficult. Since timeout is last, we can insert a call to GetRegex(...) there
+                        // however, our stack then looks like input, replacement, regex, where we need
+                        // to move regex to the beginning of that list to call the non-static equivalent regex.Replace(...).
+                        // Thus, we'll first store all remaining args to locals and push load them back in the correct order
+
+                        var locals = reference.Method.Parameters
+                            // knock out what we've already eliminated
+                            .Where((p, index) => index != regexMethod.PatternParameterIndex && index != regexMethod.OptionsParameterIndex)
+                            .Select(p => new VariableDefinition(p.ParameterType))
+                            .ToList();
+                        if (locals.Count > 0) { method.Body.InitLocals = true; }
+                        locals.ForEach(method.Body.Variables.Add);
+
+                        // save off the values in reverse order, since we're popping off the stack
+                        for (var i = locals.Count - 1; i >= 0; --i)
+                        {
+                            il.InsertBefore(reference.CallInstruction, Instruction.Create(OpCodes.Stloc, locals[i]));
+                        }
+
+                        // if we have a timeout, push that local
+                        if (regexMethod.TimeoutParameterIndex.HasValue)
+                        {
+                            il.InsertBefore(reference.CallInstruction, Instruction.Create(OpCodes.Ldloc, locals.Single(v => v.VariableType.Name == nameof(TimeSpan))));
+                        }
+
+                        // get the regex
+                        il.InsertBefore(reference.CallInstruction, getRegexInstruction);
+
+                        // put the arguments back, except the timeout
+                        foreach (var local in locals.Where(v => v.VariableType.Name != nameof(TimeSpan)))
+                        {
+                            il.InsertBefore(reference.CallInstruction, Instruction.Create(OpCodes.Ldloc, local));
+                        }
+
+                        // finally, call the equivalent instance function
+                        il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Callvirt, method.Module.ImportReference(regexMethod.InstanceEquivalent)));
+                    }
                 }
             }
             finally

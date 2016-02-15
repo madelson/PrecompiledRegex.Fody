@@ -54,6 +54,17 @@ namespace AssemblyToProcess
             ReferenceEquals(r6, r7).ShouldEqual(false);
             ReferenceEquals(r1, r7).ShouldEqual(false);
         }
+
+        public void TestStaticIsMatch()
+        {
+            Regex.IsMatch("a", "a").ShouldEqual(true);
+            Regex.IsMatch("b", "a").ShouldEqual(false);
+            Regex.IsMatch("A", "a").ShouldEqual(false);
+
+            Regex.IsMatch("a", "a", RegexOptions.IgnoreCase).ShouldEqual(true);
+            Regex.IsMatch("b", "a", RegexOptions.IgnoreCase).ShouldEqual(false);
+            Regex.IsMatch("A", "a", RegexOptions.IgnoreCase).ShouldEqual(true);
+        }
     }
     
     internal static class TestHelper

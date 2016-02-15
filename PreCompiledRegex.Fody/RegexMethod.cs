@@ -52,9 +52,21 @@ namespace PreCompiledRegex.Fody
             this.PatternParameterIndex = this.FindParameterIndex(p => p.ParameterType == typeof(string) && p.Name == "pattern").Value;
             this.OptionsParameterIndex = this.FindParameterIndex(p => p.ParameterType == typeof(RegexOptions) && p.Name == "options");
             this.TimeoutParameterIndex = this.FindParameterIndex(p => p.ParameterType == typeof(TimeSpan) && p.Name == "matchTimeout");
+            this.InstanceEquivalent = this.Method.IsConstructor
+                ? null
+                : typeof(Regex).GetMethod(
+                    this.Method.Name,
+                    BindingFlags.Public | BindingFlags.Instance,
+                    Type.DefaultBinder,
+                    this.Parameters.Where((p, index) => index != this.PatternParameterIndex && index != this.OptionsParameterIndex && index != this.TimeoutParameterIndex)
+                        .Select(p => p.ParameterType)
+                        .ToArray(),
+                    new ParameterModifier[0]
+                );
         }
 
         public MethodBase Method { get; }
+        public MethodInfo InstanceEquivalent { get; }
         public IReadOnlyList<ParameterInfo> Parameters { get; }
         public int PatternParameterIndex { get; }
         public int? OptionsParameterIndex { get; }
