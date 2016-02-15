@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -32,10 +33,12 @@ namespace PrecompiledRegex.Fody.Tests
             var testType = WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples");
             Assert.IsNotNull(testType);
             var instance = Activator.CreateInstance(testType);
-            foreach (var method in testType.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            foreach (var method in testType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
-                Console.WriteLine($"Running {method.Name}");
+                Console.Write($"Running {method.Name}...");
+                var stopwatch = Stopwatch.StartNew();
                 method.Invoke(instance, new object[0]);
+                Console.WriteLine($" finished ({stopwatch.Elapsed.TotalSeconds:0.0000}s)");
             }
         }
     }

@@ -12,10 +12,10 @@ namespace AssemblyToProcess
         public void TestRegexObjectNoOptions()
         {
             var regex = new Regex("a");
-            regex.IsMatch("b").ShouldEqual(false);
-            regex.IsMatch("a").ShouldEqual(true);
-            regex.IsMatch("A").ShouldEqual(false);
-            regex.Options.HasFlag(RegexOptions.Compiled).ShouldEqual(true);
+            regex.IsMatch("b").ShouldEqual(false, "b");
+            regex.IsMatch("a").ShouldEqual(true, "a");
+            regex.IsMatch("A").ShouldEqual(false, "A");
+            (regex.GetType() == typeof(Regex)).ShouldEqual(false);
         }
 
         public void TestRegexObjectWithOptions()
@@ -24,7 +24,7 @@ namespace AssemblyToProcess
             regex.IsMatch("b").ShouldEqual(false);
             regex.IsMatch("a").ShouldEqual(true);
             regex.IsMatch("A").ShouldEqual(true);
-            regex.Options.HasFlag(RegexOptions.Compiled).ShouldEqual(true);
+            (regex.GetType() == typeof(Regex)).ShouldEqual(false);
         }
 
         public void TestRegexObjectWithOptionsAndTimeout()
@@ -33,17 +33,36 @@ namespace AssemblyToProcess
             regex.IsMatch("b").ShouldEqual(false);
             regex.IsMatch("a").ShouldEqual(true);
             regex.IsMatch("A").ShouldEqual(true);
-            regex.Options.HasFlag(RegexOptions.Compiled).ShouldEqual(true);
+            (regex.GetType() == typeof(Regex)).ShouldEqual(false);
+        }
+
+        public void TestRegexIdentity()
+        {
+            var r1 = new Regex("abc");
+            var r2 = new Regex("abc", RegexOptions.None);
+            var r3 = new Regex("abc", RegexOptions.None, TimeSpan.FromSeconds(1));
+            var r4 = new Regex("abc", RegexOptions.None, TimeSpan.FromSeconds(1));
+            var r5 = new Regex("abc", RegexOptions.None, TimeSpan.FromSeconds(2));
+            var r6 = new Regex("ABC", RegexOptions.IgnoreCase);
+            var r7 = new Regex("abc", RegexOptions.IgnoreCase);
+
+            ReferenceEquals(r1, r2).ShouldEqual(true);
+            ReferenceEquals(r2, r3).ShouldEqual(false);
+            ReferenceEquals(r3, r4).ShouldEqual(true);
+            ReferenceEquals(r4, r5).ShouldEqual(false);
+            ReferenceEquals(r1, r6).ShouldEqual(false);
+            ReferenceEquals(r6, r7).ShouldEqual(false);
+            ReferenceEquals(r1, r7).ShouldEqual(false);
         }
     }
     
     internal static class TestHelper
     {
-        public static T ShouldEqual<T>(this T @this, T that)
+        public static T ShouldEqual<T>(this T @this, T that, string message = null)
         {
             if (!EqualityComparer<T>.Default.Equals(@this, that))
             {
-                throw new TestFailedException($"Expected '{that}', but was '{@this}'");
+                throw new TestFailedException($"Expected '{that}', but was '{@this}'{(message != null ? ": " + message : null)}");
             }
             return @this;
         }
