@@ -21,36 +21,21 @@ namespace PrecompiledRegex.Fody.Tests
         }
 
         [TestMethod]
-        public void CanGetAssembly()
+        public void CanGetDefaultAssembly()
         {
             Assert.IsNotNull(WeaverRunner.DefaultAssembly);
+        }
 
-            try {
-                var type = WeaverRunner.DefaultAssembly.GetType("PrecompiledRegex.Fody.RegularExpressions");
-                foreach (var field in type.GetFields(BindingFlags.Static | BindingFlags.NonPublic))
-                {
-                    Console.WriteLine(field);
-                }
-
-                var methods = type.GetMethods().Where(m => m.ReturnType == typeof(Regex));
-                var regex = (Regex)methods.Single().Invoke(null, new object[0]);
-                Assert.AreEqual("a", regex.ToString());
-
-                var testType = WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples");
-                Assert.IsNotNull(testType);
-                var instance = Activator.CreateInstance(testType);
-                foreach (var method in testType.GetMethods(BindingFlags.Public | BindingFlags.Static))
-                {
-                    method.Invoke(instance, new object[0]);
-                }
-            }
-            catch (ReflectionTypeLoadException ex)
+        [TestMethod]
+        public void TestDefaultAssembly()
+        {
+            var testType = WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples");
+            Assert.IsNotNull(testType);
+            var instance = Activator.CreateInstance(testType);
+            foreach (var method in testType.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
-                Console.WriteLine("**** BEGIN LOADER EXCEPTIONS ****");
-                foreach (var loaderException in ex.LoaderExceptions) { Console.WriteLine(loaderException); }
-                Console.WriteLine("**** END LOADER EXCEPTIONS ****");
-                throw;
-            } 
+                method.Invoke(instance, new object[0]);
+            }
         }
     }
 }
