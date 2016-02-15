@@ -14,6 +14,26 @@ namespace AssemblyToProcess
             var regex = new Regex("a");
             regex.IsMatch("b").ShouldEqual(false);
             regex.IsMatch("a").ShouldEqual(true);
+            regex.IsMatch("A").ShouldEqual(false);
+            regex.Options.HasFlag(RegexOptions.Compiled).ShouldEqual(true);
+        }
+
+        public void TestRegexObjectWithOptions()
+        {
+            var regex = new Regex("a", RegexOptions.IgnoreCase);
+            regex.IsMatch("b").ShouldEqual(false);
+            regex.IsMatch("a").ShouldEqual(true);
+            regex.IsMatch("A").ShouldEqual(true);
+            regex.Options.HasFlag(RegexOptions.Compiled).ShouldEqual(true);
+        }
+
+        public void TestRegexObjectWithOptionsAndTimeout()
+        {
+            var regex = new Regex("a", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(10));
+            regex.IsMatch("b").ShouldEqual(false);
+            regex.IsMatch("a").ShouldEqual(true);
+            regex.IsMatch("A").ShouldEqual(true);
+            regex.Options.HasFlag(RegexOptions.Compiled).ShouldEqual(true);
         }
     }
     

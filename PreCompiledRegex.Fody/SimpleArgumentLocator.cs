@@ -53,6 +53,8 @@ namespace PreCompiledRegex.Fody
                         stackDelta = 0; // reset
                     }
                 }
+
+                nextInstructionToAnalyze = nextInstructionToAnalyze.Previous;
             }
 
             argumentList.Reverse(); // we built the list backwards

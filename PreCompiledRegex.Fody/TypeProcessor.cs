@@ -159,27 +159,71 @@ namespace PreCompiledRegex.Fody
             var newAssembly = AssemblyDefinition.ReadAssembly(newAssemblyPath);
             module.AssemblyReferences.Add(AssemblyNameReference.Parse(newAssembly.FullName));
 
-            var compiledRegexMethods = new Dictionary<RegexDefinition, MethodDefinition>();
+            var compiledRegexMethods = new Dictionary<RegexDefinition, CompiledRegexMethods>();
             foreach (var regex in regularExpressionsToCompile)
             {
-                var field = new FieldDefinition("cached" + regex.Name, FieldAttributes.Private | FieldAttributes.Static, module.ImportReference(typeof(Regex)));
-                type.Fields.Add(field);
+                var noTimeoutField = new FieldDefinition("cached" + regex.Name, FieldAttributes.Private | FieldAttributes.Static, module.ImportReference(typeof(Regex)));
+                type.Fields.Add(noTimeoutField);
 
-                var method = new MethodDefinition(regex.Name, MethodAttributes.Public | MethodAttributes.Static, module.ImportReference(typeof(Regex)));
-                type.Methods.Add(method);
+                var noTimeoutMethod = new MethodDefinition(regex.Name, MethodAttributes.Public | MethodAttributes.Static, module.ImportReference(typeof(Regex)));
+                type.Methods.Add(noTimeoutMethod);
 
-                var il = method.Body.GetILProcessor();
-                il.Emit(OpCodes.Ldsfld, field);
-                var epilogStartInstruction = Instruction.Create(OpCodes.Ldsfld, field);
+                var il = noTimeoutMethod.Body.GetILProcessor();
+                il.Emit(OpCodes.Ldsfld, noTimeoutField);
+                var epilogStartInstruction = Instruction.Create(OpCodes.Ldsfld, noTimeoutField);
                 // Branch if value on stack is true, not null or non-zero
                 il.Emit(OpCodes.Brtrue, epilogStartInstruction);
                 il.Emit(OpCodes.Newobj, module.ImportReference(newAssembly.MainModule.GetType(regex.Namespace + "." + regex.Name).GetConstructors().Single(c => !c.HasParameters)));
-                il.Emit(OpCodes.Stsfld, field);
+                il.Emit(OpCodes.Stsfld, noTimeoutField);
                 il.Append(epilogStartInstruction);
                 il.Emit(OpCodes.Ret);
-                method.Body.OptimizeMacros();
+                noTimeoutMethod.Body.OptimizeMacros();
 
-                compiledRegexMethods.Add(new RegexDefinition(regex.Pattern, regex.Options), method);
+                var timeoutField = new FieldDefinition("cached" + regex.Name + "WithTimeout", FieldAttributes.Private | FieldAttributes.Static, module.ImportReference(typeof(Regex)));
+                type.Fields.Add(timeoutField);
+
+                var timeoutMethod = new MethodDefinition(regex.Name, MethodAttributes.Public | MethodAttributes.Static, module.ImportReference(typeof(Regex)));
+                timeoutMethod.Body.InitLocals = true;
+                timeoutMethod.Body.Variables.Add(new VariableDefinition(module.ImportReference(typeof(Regex))));
+                timeoutMethod.Parameters.Add(new ParameterDefinition("matchTimeout", ParameterAttributes.None, module.ImportReference(typeof(TimeSpan))));
+                type.Methods.Add(timeoutMethod);
+
+                il = timeoutMethod.Body.GetILProcessor();
+                // var regex = cached
+                il.Emit(OpCodes.Ldsfld, timeoutField);
+                il.Emit(OpCodes.Stloc_0);
+                // if (regex == null
+                il.Emit(OpCodes.Ldloc_0);
+                var startBuildingRegexInstruction = Instruction.Create(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Brfalse, startBuildingRegexInstruction);
+                // || regex.MatchTimeout != matchTimeout)
+                il.Emit(OpCodes.Ldloc_0);
+                il.Emit(OpCodes.Callvirt, module.ImportReference(typeof(Regex).GetProperty("MatchTimeout").GetMethod));
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Call, module.ImportReference(typeof(TimeSpan).GetMethod("op_Inequality", new[] { typeof(TimeSpan), typeof(TimeSpan) }))); 
+                epilogStartInstruction = Instruction.Create(OpCodes.Ldloc_0);
+                il.Emit(OpCodes.Brfalse, epilogStartInstruction);
+                // regex = new [CustomRegex](matchTimeout)
+                il.Append(startBuildingRegexInstruction);
+                il.Emit(
+                    OpCodes.Newobj,
+                    module.ImportReference(
+                        newAssembly.MainModule
+                            .GetType(regex.Namespace + "." + regex.Name)
+                            .GetConstructors()
+                            .Single(c => c.Parameters.Count == 1 && c.Parameters[0].ParameterType.Name == nameof(TimeSpan))
+                    )
+                );
+                il.Emit(OpCodes.Stloc_0);
+                // cached = regex
+                il.Emit(OpCodes.Ldloc_0);
+                il.Emit(OpCodes.Stsfld, timeoutField);
+                // return regex
+                il.Append(epilogStartInstruction);
+                il.Emit(OpCodes.Ret);
+                timeoutMethod.Body.OptimizeMacros();
+
+                compiledRegexMethods.Add(new RegexDefinition(regex.Pattern, regex.Options), new CompiledRegexMethods(noTimeoutMethod, timeoutMethod));
             }
 
             foreach (var referencingMethod in this.replacableRegexDefinitionsByMethod.Keys)
@@ -188,7 +232,7 @@ namespace PreCompiledRegex.Fody
             }
         }
 
-        private void PostProcessMethod(MethodDefinition method, Dictionary<RegexDefinition, MethodDefinition> compiledRegexes)
+        private void PostProcessMethod(MethodDefinition method, Dictionary<RegexDefinition, CompiledRegexMethods> compiledRegexes)
         {
             var definitions = this.replacableRegexDefinitionsByMethod[method];
 
@@ -208,13 +252,28 @@ namespace PreCompiledRegex.Fody
                     {
                         il.Remove(reference.OptionsInstruction);
                     }
-                    il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Call, compiledRegex));
+                    var replacementMethod = reference.RegexMethod.TimeoutParameterIndex.HasValue
+                        ? compiledRegex.TimeoutMethod
+                        : compiledRegex.NoTimeoutMethod;
+                    il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Call, replacementMethod));
                 }
             }
             finally
             {
                 method.Body.OptimizeMacros();
             }
+        }
+
+        private sealed class CompiledRegexMethods
+        {
+            public CompiledRegexMethods(MethodDefinition noTimeoutMethod, MethodDefinition timeoutMethod)
+            {
+                this.NoTimeoutMethod = noTimeoutMethod;
+                this.TimeoutMethod = timeoutMethod;
+            }
+
+            public MethodDefinition NoTimeoutMethod { get; }
+            public MethodDefinition TimeoutMethod { get; }
         }
     }
 }

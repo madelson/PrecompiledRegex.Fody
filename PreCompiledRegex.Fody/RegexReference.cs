@@ -23,6 +23,8 @@ namespace PreCompiledRegex.Fody
 
         public MethodDefinition Method => ((MethodReference)this.CallInstruction.Operand).Resolve();
 
+        public RegexMethod RegexMethod => RegexMethod.All.First(rm => rm.IsEquivalentTo(this.Method));
+
         public RegexDefinition Definition => new RegexDefinition(
             (string)this.PatternInstruction.Operand, 
             this.OptionsInstruction != null ? RegexReferenceFinder.TryGetRegexOptions(this.OptionsInstruction).Value : RegexOptions.None

@@ -34,6 +34,7 @@ namespace PrecompiledRegex.Fody.Tests
             var instance = Activator.CreateInstance(testType);
             foreach (var method in testType.GetMethods(BindingFlags.Public | BindingFlags.Static))
             {
+                Console.WriteLine($"Running {method.Name}");
                 method.Invoke(instance, new object[0]);
             }
         }
