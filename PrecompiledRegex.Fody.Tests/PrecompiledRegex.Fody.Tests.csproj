@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="MockAssemblyResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegexExamplesTests.cs" />
     <Compile Include="Verifier.cs" />
     <Compile Include="WeaverRunner.cs" />
     <Compile Include="WeaverTests.cs" />
