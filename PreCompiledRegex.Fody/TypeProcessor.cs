@@ -136,6 +136,7 @@ namespace PreCompiledRegex.Fody
             var newAssembly = AssemblyDefinition.ReadAssembly(newAssemblyPath);
             module.AssemblyReferences.Add(AssemblyNameReference.Parse(newAssembly.FullName));
 
+            var compiledRegexMethods = new Dictionary<KeyValuePair<string, RegexOptions>, MethodDefinition>();
             foreach (var regex in regularExpressionsToCompile)
             {
                 var field = new FieldDefinition("cached" + regex.Name, FieldAttributes.Private | FieldAttributes.Static, module.ImportReference(typeof(Regex)));
@@ -153,6 +154,39 @@ namespace PreCompiledRegex.Fody
                 il.Emit(OpCodes.Stsfld, field);
                 il.Append(epilogStartInstruction);
                 il.Emit(OpCodes.Ret);
+                method.Body.OptimizeMacros();
+
+                compiledRegexMethods.Add(new KeyValuePair<string, RegexOptions>(regex.Pattern, regex.Options), method);
+            }
+
+            foreach (var referencingMethod in this.constantRegularExpressionsByMethod.Keys)
+            {
+                this.PostProcessMethod(referencingMethod, compiledRegexMethods);
+            }
+        }
+
+        private void PostProcessMethod(MethodDefinition method, IReadOnlyDictionary<KeyValuePair<string, RegexOptions>, MethodDefinition> compiledRegexes)
+        {
+            var references = this.constantRegularExpressionsByMethod[method];
+
+            method.Body.SimplifyMacros();
+            try
+            {
+                foreach (var reference in references)
+                {
+                    var referenceInstruction = method.Body.Instructions.First(this.regexMethods.IsRegexMethodReference);
+                    var kvp = PatternAndOptionsFinder.TryFindPatternAndOptions(referenceInstruction);
+                    if (kvp.HasValue)
+                    {
+                        var compiledRegex = compiledRegexes[kvp.Value];
+                        var il = method.Body.GetILProcessor();
+                        il.Remove(referenceInstruction.Previous); // delete ldstr
+                        il.Replace(referenceInstruction, Instruction.Create(OpCodes.Call, compiledRegex));
+                    }
+                }
+            }
+            finally
+            {
                 method.Body.OptimizeMacros();
             }
         }
