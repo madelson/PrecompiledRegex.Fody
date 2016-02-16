@@ -34,6 +34,15 @@ namespace PreCompiledRegex.Fody
                     this.PreProcessMethod(method);
                 }
             }
+
+            // recurse on nested types, since Module.Types doesn't contain them
+            if (type.HasNestedTypes)
+            {
+                foreach (var nestedType in type.NestedTypes)
+                {
+                    this.PreProcessType(nestedType);
+                }
+            }
         }
 
         private void PreProcessMethod(MethodDefinition method)

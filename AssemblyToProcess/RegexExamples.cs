@@ -106,6 +106,21 @@ namespace AssemblyToProcess
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase).ShouldEqual("(1)a(2)a(3)a(B)a");
             Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value, RegexOptions.IgnoreCase).ShouldEqual("11a22a33aBBa");
         }
+
+        public void TestInitializers()
+        {
+            ClassWithInitializers.StaticRegex.IsMatch("ABC").ShouldEqual(true, "bad static match");
+            (ClassWithInitializers.StaticRegex.GetType() == typeof(Regex)).ShouldEqual(false, "should be derived type");
+
+            new ClassWithInitializers().InstanceRegex.IsMatch("abc").ShouldEqual(true, "bad instance match");
+            ReferenceEquals(new ClassWithInitializers().InstanceRegex, new ClassWithInitializers().InstanceRegex).ShouldEqual(true, "should be re-used instance");
+        }
+
+        private class ClassWithInitializers
+        {
+            public static Regex StaticRegex { get; } = new Regex("abc", RegexOptions.IgnoreCase);
+            public Regex InstanceRegex { get; } = new Regex("abc");
+        }
     }
     
     internal static class TestHelper

@@ -38,6 +38,9 @@ namespace PrecompiledRegex.Fody.Tests
         [TestMethod]
         public void TestStaticReplace() => GetExamples().TestStaticReplace();
 
+        [TestMethod]
+        public void TestInitializers() => GetExamples().TestInitializers();
+
         private static dynamic GetExamples() => Activator.CreateInstance(WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples"));
     }
 }

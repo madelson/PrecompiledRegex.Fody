@@ -27,10 +27,7 @@ namespace PreCompiledRegex.Fody
 
             foreach (var type in this.ModuleDefinition.Types)
             {
-                if (!type.IsEnum && !type.IsInterface)
-                {
-                    typeProcessor.PreProcessType(type);
-                }
+                typeProcessor.PreProcessType(type);
             }
 
             typeProcessor.PostProcessAllTypes();
