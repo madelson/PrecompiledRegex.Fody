@@ -107,7 +107,7 @@ namespace PreCompiledRegex.Fody
 
             if (tempAssemblyPath == null) { return; }
 
-            var module = this.replacableRegexDefinitionsByMethod.First().Key.Module;
+            var module = this.context.ModuleDefinition;
 
             // create replacement type
             var type = new TypeDefinition("PrecompiledRegex.Fody", "RegularExpressions", TypeAttributes.NotPublic | TypeAttributes.Sealed);
@@ -281,10 +281,10 @@ namespace PreCompiledRegex.Fody
                         // to move regex to the beginning of that list to call the non-static equivalent regex.Replace(...).
                         // Thus, we'll first store all remaining args to locals and push load them back in the correct order
 
-                        var locals = reference.Method.Parameters
+                        var locals = regexMethod.Parameters
                             // knock out what we've already eliminated
                             .Where((p, index) => index != regexMethod.PatternParameterIndex && index != regexMethod.OptionsParameterIndex)
-                            .Select(p => new VariableDefinition(p.ParameterType))
+                            .Select(p => new VariableDefinition(this.context.ModuleDefinition.ImportReference(p.ParameterType)))
                             .ToList();
                         if (locals.Count > 0) { method.Body.InitLocals = true; }
                         locals.ForEach(method.Body.Variables.Add);
@@ -311,7 +311,7 @@ namespace PreCompiledRegex.Fody
                         }
 
                         // finally, call the equivalent instance function
-                        il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Callvirt, method.Module.ImportReference(regexMethod.InstanceEquivalent)));
+                        il.Replace(reference.CallInstruction, Instruction.Create(OpCodes.Callvirt, this.context.ModuleDefinition.ImportReference(regexMethod.InstanceEquivalent)));
                     }
                 }
             }

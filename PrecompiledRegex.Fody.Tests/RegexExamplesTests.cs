@@ -47,6 +47,9 @@ namespace PrecompiledRegex.Fody.Tests
         [TestMethod]
         public void TestConsts() => GetExamples().TestConsts();
 
+        [TestMethod]
+        public void TestTimeouts() => GetExamples().TestTimeouts();
+
         private static dynamic GetExamples() => Activator.CreateInstance(WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples"));
     }
 }
