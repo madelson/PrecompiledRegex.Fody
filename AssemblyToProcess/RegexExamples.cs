@@ -106,15 +106,16 @@ namespace AssemblyToProcess
 
         public void TestStaticReplace()
         {
+            // NOTE: we need to factor this out for now because creating a lambda with no captures involves branching, which 
+            // we don't yet support as part of argument detection
+            MatchEvaluator evaluator = m => m.Value + m.Value;
+
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)").ShouldEqual("(1)a(2)a(3)aBa");
-            Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value).ShouldEqual("11a22a33aBa");
+            Regex.Replace("1a2a3aBa", @"\d|b", evaluator).ShouldEqual("11a22a33aBa");
 
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase).ShouldEqual("(1)a(2)a(3)a(B)a");
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("(1)a(2)a(3)a(B)a");
 
-            // NOTE: we need to factor this out for now because creating a lambda with no captures involves branching, which 
-            // we don't yet support as part of argument detection
-            MatchEvaluator evaluator = m => m.Value + m.Value;
             Regex.Replace("1a2a3aBa", @"\d|b", evaluator, RegexOptions.IgnoreCase).ShouldEqual("11a22a33aBBa");
             Regex.Replace("1a2a3aBa", @"\d|b", evaluator, RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("11a22a33aBBa");
         }
@@ -131,7 +132,7 @@ namespace AssemblyToProcess
         public void TestStaticInitializer()
         {
             ReferenceEquals(ClassWithInitializers.DeeplyNested.A, new Regex("a")).ShouldEqual(true);
-            ClassWithInitializers.DeeplyNested.B.GetType().ShouldEqual(typeof(Regex));
+            ClassWithInitializers.DeeplyNested.B.ShouldEqual("a|None");
             ReferenceEquals(ClassWithInitializers.DeeplyNested.C, ClassWithInitializers.DeeplyNested.A).ShouldEqual(true);
         }
 
@@ -167,7 +168,7 @@ namespace AssemblyToProcess
                 public const RegexOptions ConstIgnoreCase = RegexOptions.IgnoreCase;
 
                 public static readonly Regex A = new Regex("a");
-                public static readonly Regex B = new Regex(A.ToString(), A.Options, A.MatchTimeout);
+                public static readonly string B = $"{A}|{A.Options}";
 
                 public static readonly Regex C;
 
