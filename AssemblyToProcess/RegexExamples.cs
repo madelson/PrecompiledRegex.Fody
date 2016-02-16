@@ -45,6 +45,7 @@ namespace AssemblyToProcess
             var r5 = new Regex("abc", RegexOptions.None, TimeSpan.FromSeconds(2));
             var r6 = new Regex("ABC", RegexOptions.IgnoreCase);
             var r7 = new Regex("abc", RegexOptions.IgnoreCase);
+            var r8 = new Regex("abc", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
             ReferenceEquals(r1, r2).ShouldEqual(true);
             ReferenceEquals(r2, r3).ShouldEqual(false);
@@ -53,6 +54,7 @@ namespace AssemblyToProcess
             ReferenceEquals(r1, r6).ShouldEqual(false);
             ReferenceEquals(r6, r7).ShouldEqual(false);
             ReferenceEquals(r1, r7).ShouldEqual(false);
+            ReferenceEquals(r7, r8).ShouldEqual(true);
         }
 
         public void TestStaticIsMatch()
@@ -116,10 +118,44 @@ namespace AssemblyToProcess
             ReferenceEquals(new ClassWithInitializers().InstanceRegex, new ClassWithInitializers().InstanceRegex).ShouldEqual(true, "should be re-used instance");
         }
 
+        public void TestStaticInitializer()
+        {
+            ReferenceEquals(ClassWithInitializers.DeeplyNested.A, new Regex("a")).ShouldEqual(true);
+            ClassWithInitializers.DeeplyNested.B.GetType().ShouldEqual(typeof(Regex));
+            ReferenceEquals(ClassWithInitializers.DeeplyNested.C, ClassWithInitializers.DeeplyNested.A).ShouldEqual(true);
+        }
+
+        private const string A = "a";
+
+        public void TestConsts()
+        {
+            const string LocalA = "a";
+
+            ReferenceEquals(new Regex(A), new Regex("a")).ShouldEqual(true);
+            ReferenceEquals(new Regex(LocalA), new Regex("a")).ShouldEqual(true);
+            ReferenceEquals(new Regex(A, ClassWithInitializers.DeeplyNested.ConstIgnoreCase), new Regex("a", RegexOptions.IgnoreCase)).ShouldEqual(true);
+            ReferenceEquals(new Regex(A + LocalA, RegexOptions.IgnorePatternWhitespace), new Regex("aa", RegexOptions.IgnorePatternWhitespace | RegexOptions.Compiled)).ShouldEqual(true);
+        }
+
         private class ClassWithInitializers
         {
             public static Regex StaticRegex { get; } = new Regex("abc", RegexOptions.IgnoreCase);
             public Regex InstanceRegex { get; } = new Regex("abc");
+
+            public class DeeplyNested
+            {
+                public const RegexOptions ConstIgnoreCase = RegexOptions.IgnoreCase;
+
+                public static readonly Regex A = new Regex("a");
+                public static readonly Regex B = new Regex(A.ToString(), A.Options, A.MatchTimeout);
+
+                public static readonly Regex C;
+
+                static DeeplyNested()
+                {
+                    C = new Regex("a", RegexOptions.Compiled);
+                }
+            }
         }
     }
     

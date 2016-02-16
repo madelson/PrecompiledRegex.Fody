@@ -41,6 +41,12 @@ namespace PrecompiledRegex.Fody.Tests
         [TestMethod]
         public void TestInitializers() => GetExamples().TestInitializers();
 
+        [TestMethod]
+        public void TestStaticInitializer() => GetExamples().TestStaticInitializer();
+
+        [TestMethod]
+        public void TestConsts() => GetExamples().TestConsts();
+
         private static dynamic GetExamples() => Activator.CreateInstance(WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples"));
     }
 }
