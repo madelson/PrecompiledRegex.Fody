@@ -68,6 +68,7 @@ namespace AssemblyToProcess
             Regex.IsMatch("b", "a", RegexOptions.IgnoreCase).ShouldEqual(false);
             Regex.IsMatch("A", "a", RegexOptions.IgnoreCase).ShouldEqual(true);
             Regex.IsMatch("abc", "a . C", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase).ShouldEqual(true);
+            Regex.IsMatch("abc", "a . C", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual(true);
         }
 
         public void TestStaticMatch()
@@ -81,6 +82,7 @@ namespace AssemblyToProcess
             Regex.Match("b", "a", RegexOptions.IgnoreCase).Success.ShouldEqual(false);
             Regex.Match("A", "a", RegexOptions.IgnoreCase).Success.ShouldEqual(true);
             Regex.IsMatch("abc", "a . C", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase).ShouldEqual(true);
+            Regex.IsMatch("abc", "a . C", RegexOptions.IgnorePatternWhitespace | RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual(true);
         }
 
         public void TestStaticMatches()
@@ -92,12 +94,14 @@ namespace AssemblyToProcess
             Regex.Matches("bbb", "a", RegexOptions.IgnoreCase).Count.ShouldEqual(0);
             Regex.Matches("ababa", "a", RegexOptions.IgnoreCase).Count.ShouldEqual(3);
             Regex.Matches("AbAba", "a", RegexOptions.IgnoreCase).Count.ShouldEqual(3);
+            Regex.Matches("AbAba", "a", RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).Count.ShouldEqual(3);
         }
 
         public void TestStaticSplit()
         {
             string.Join("+", Regex.Split("1a2a3A4", "a")).ShouldEqual("1+2+3A4");
             string.Join("+", Regex.Split("1a2a3A4", "a", RegexOptions.IgnoreCase)).ShouldEqual("1+2+3+4");
+            string.Join("+", Regex.Split("1a2a3A4", "a", RegexOptions.IgnoreCase, TimeSpan.FromHours(1))).ShouldEqual("1+2+3+4");
         }
 
         public void TestStaticReplace()
@@ -106,7 +110,9 @@ namespace AssemblyToProcess
             Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value).ShouldEqual("11a22a33aBa");
 
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase).ShouldEqual("(1)a(2)a(3)a(B)a");
+            Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("(1)a(2)a(3)a(B)a");
             Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value, RegexOptions.IgnoreCase).ShouldEqual("11a22a33aBBa");
+            Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value, RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("11a22a33aBBa");
         }
 
         public void TestInitializers()
