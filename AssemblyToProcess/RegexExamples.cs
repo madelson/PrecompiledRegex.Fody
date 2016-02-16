@@ -111,8 +111,12 @@ namespace AssemblyToProcess
 
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase).ShouldEqual("(1)a(2)a(3)a(B)a");
             Regex.Replace("1a2a3aBa", @"\d|b", "($0)", RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("(1)a(2)a(3)a(B)a");
-            Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value, RegexOptions.IgnoreCase).ShouldEqual("11a22a33aBBa");
-            Regex.Replace("1a2a3aBa", @"\d|b", m => m.Value + m.Value, RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("11a22a33aBBa");
+
+            // NOTE: we need to factor this out for now because creating a lambda with no captures involves branching, which 
+            // we don't yet support as part of argument detection
+            MatchEvaluator evaluator = m => m.Value + m.Value;
+            Regex.Replace("1a2a3aBa", @"\d|b", evaluator, RegexOptions.IgnoreCase).ShouldEqual("11a22a33aBBa");
+            Regex.Replace("1a2a3aBa", @"\d|b", evaluator, RegexOptions.IgnoreCase, TimeSpan.FromHours(1)).ShouldEqual("11a22a33aBBa");
         }
 
         public void TestInitializers()
