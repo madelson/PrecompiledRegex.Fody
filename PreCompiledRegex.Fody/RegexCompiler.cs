@@ -31,7 +31,7 @@ namespace PreCompiledRegex.Fody
             var assembly = this.GetExistingValidAssembly(assemblyName, regexHash: regexHash)
                 ?? this.Compile(assemblyName, compilationInfos, regexHash: regexHash);
 
-            return new Result { Assembly = assembly, CompilationInfos = compilationInfos };
+            return new Result { Assembly = assembly, CompiledRegexes = compilationInfos };
         }
 
         private AssemblyName GetAssemblyName()
@@ -145,7 +145,7 @@ namespace PreCompiledRegex.Fody
         {
             public bool Success => this.Assembly != null;
             public AssemblyDefinition Assembly { get; set; }
-            public List<RegexCompilationInfo> CompilationInfos { get; set; }
+            public List<RegexCompilationInfo> CompiledRegexes { get; set; }
         }
     }
 }
