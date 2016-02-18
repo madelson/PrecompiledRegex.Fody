@@ -1,4 +1,5 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,6 @@ namespace PreCompiledRegex.Fody
     {
         // required, injected
         public ModuleDefinition ModuleDefinition { get; set; }
-
-        // injected
-        public IAssemblyResolver AssemblyResolver { get; set; }
 
         // injected
         public string AssemblyFilePath { get; set; }

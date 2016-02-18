@@ -17,7 +17,6 @@ namespace PreCompiledRegex.Fody
         }
 
         public ModuleDefinition ModuleDefinition => this.weaver.ModuleDefinition;
-        public IAssemblyResolver AssemblyResolver => this.weaver.AssemblyResolver;
         public string AssemblyFilePath => this.weaver.AssemblyFilePath;
     }
 }

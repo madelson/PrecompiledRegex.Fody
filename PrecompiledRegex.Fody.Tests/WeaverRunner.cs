@@ -31,7 +31,6 @@ namespace PrecompiledRegex.Fody.Tests
             var weavingTask = new ModuleWeaver
             {
                 ModuleDefinition = moduleDefinition,
-                AssemblyResolver = new MockAssemblyResolver(),
                 AssemblyFilePath = newAssemblyPath,
             };
 
