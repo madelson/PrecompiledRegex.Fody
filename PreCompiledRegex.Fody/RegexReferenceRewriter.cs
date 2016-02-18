@@ -50,7 +50,7 @@ namespace PreCompiledRegex.Fody
                 {
                     var reference = method.Body.Instructions
                         .Select(this.referenceExtractor.TryGetRegexReference)
-                        .First(@ref => @ref != null);
+                        .First(@ref => @ref != null); // todo log
                     var regexMethod = reference.RegexMethod;
                     var accessors = regexAccessors[reference.Definition];
 

@@ -24,14 +24,17 @@ namespace PreCompiledRegex.Fody
 
         public Result Compile()
         {
-            var assemblyName = this.GetAssemblyName();
-            var compilationInfos = this.GetCompilationInfos(assemblyName);
-            var regexHash = this.HashCompilationInfos(compilationInfos);
-            
-            var assembly = this.GetExistingValidAssembly(assemblyName, regexHash: regexHash)
-                ?? this.Compile(assemblyName, compilationInfos, regexHash: regexHash);
+            using (this.context.Step($"Compiling {this.regexes.Count} Regexes"))
+            {
+                var assemblyName = this.GetAssemblyName();
+                var compilationInfos = this.GetCompilationInfos(assemblyName);
+                var regexHash = this.HashCompilationInfos(compilationInfos);
 
-            return new Result { Assembly = assembly, CompiledRegexes = compilationInfos };
+                var assembly = this.GetExistingValidAssembly(assemblyName, regexHash: regexHash)
+                    ?? this.Compile(assemblyName, compilationInfos, regexHash: regexHash);
+
+                return new Result { Assembly = assembly, CompiledRegexes = compilationInfos };
+            }
         }
 
         private AssemblyName GetAssemblyName()
