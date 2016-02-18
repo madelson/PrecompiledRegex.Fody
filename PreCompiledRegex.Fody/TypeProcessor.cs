@@ -70,42 +70,12 @@ namespace PreCompiledRegex.Fody
 
         public void PostProcessAllTypes()
         {
-            var regularExpressionsToCompile = this.replacableRegexDefinitionsByMethod
-                .SelectMany(kvp => kvp.Value)
-                .Distinct()
-                .Select((def, index) => new RegexCompilationInfo(
-                    pattern: def.Pattern,
-                    options: def.Options,
-                    name: "PreCompiledRegex" + index,
-                    fullnamespace: "PreCompiledRegex.Fody",
-                    // TODO could do false + internals visible
-                    ispublic: true
-                ))
-                .ToArray();
-
-            if (!regularExpressionsToCompile.Any()) { return; }
-
-            var tempAssemblyName = new System.Reflection.AssemblyName("PreCompiledRegexTemporaryAssembly_" + Guid.NewGuid().ToString("N"));
-
-            var originalCurrentDirectory = Environment.CurrentDirectory;
-            string tempAssemblyPath;
-            try
+            var regexCompiler = new RegexCompiler(this.context, this.replacableRegexDefinitionsByMethod.SelectMany(kvp => kvp.Value));
+            var compileResult = regexCompiler.Compile();
+            if (!compileResult.Success)
             {
-                Environment.CurrentDirectory = Path.GetTempPath();
-                Regex.CompileToAssembly(regularExpressionsToCompile, tempAssemblyName);
-                tempAssemblyPath = Path.Combine(Path.GetTempPath(), tempAssemblyName.Name + ".dll");
+                return;
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex); // todo
-                tempAssemblyPath = null;
-            }
-            finally
-            {
-                Environment.CurrentDirectory = originalCurrentDirectory;
-            }
-
-            if (tempAssemblyPath == null) { return; }
 
             var module = this.context.ModuleDefinition;
 
@@ -161,15 +131,11 @@ namespace PreCompiledRegex.Fody
             //// return
             //il.Emit(OpCodes.Ret);
             //staticConstructor.Body.OptimizeMacros();
-
-            var newAssemblyPath = Path.Combine(Path.GetDirectoryName(this.context.AssemblyFilePath), Path.GetFileName(tempAssemblyPath));
-            File.Move(tempAssemblyPath, newAssemblyPath);
-
-            var newAssembly = AssemblyDefinition.ReadAssembly(newAssemblyPath);
-            module.AssemblyReferences.Add(AssemblyNameReference.Parse(newAssembly.FullName));
-
+            
+            module.AssemblyReferences.Add(new AssemblyNameReference(compileResult.Assembly.Name.Name, compileResult.Assembly.Name.Version));
+            
             var compiledRegexMethods = new Dictionary<RegexDefinition, CompiledRegexMethods>();
-            foreach (var regex in regularExpressionsToCompile)
+            foreach (var regex in compileResult.CompilationInfos)
             {
                 var noTimeoutField = new FieldDefinition("cached" + regex.Name, FieldAttributes.Private | FieldAttributes.Static, module.ImportReference(typeof(Regex)));
                 type.Fields.Add(noTimeoutField);
@@ -182,7 +148,7 @@ namespace PreCompiledRegex.Fody
                 var epilogStartInstruction = Instruction.Create(OpCodes.Ldsfld, noTimeoutField);
                 // Branch if value on stack is true, not null or non-zero
                 il.Emit(OpCodes.Brtrue, epilogStartInstruction);
-                il.Emit(OpCodes.Newobj, module.ImportReference(newAssembly.MainModule.GetType(regex.Namespace + "." + regex.Name).GetConstructors().Single(c => !c.HasParameters)));
+                il.Emit(OpCodes.Newobj, module.ImportReference(compileResult.Assembly.MainModule.GetType(regex.Namespace + "." + regex.Name).GetConstructors().Single(c => !c.HasParameters)));
                 il.Emit(OpCodes.Stsfld, noTimeoutField);
                 il.Append(epilogStartInstruction);
                 il.Emit(OpCodes.Ret);
@@ -217,7 +183,7 @@ namespace PreCompiledRegex.Fody
                 il.Emit(
                     OpCodes.Newobj,
                     module.ImportReference(
-                        newAssembly.MainModule
+                        compileResult.Assembly.MainModule
                             .GetType(regex.Namespace + "." + regex.Name)
                             .GetConstructors()
                             .Single(c => c.Parameters.Count == 1 && c.Parameters[0].ParameterType.Name == nameof(TimeSpan))

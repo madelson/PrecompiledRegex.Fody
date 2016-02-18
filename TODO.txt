@@ -9,3 +9,4 @@
 - finalize naming of inline types
 - publish package 
 - test with regexes that don't compile
+- Rename to Precompiled

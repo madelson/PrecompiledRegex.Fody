@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="ModuleWeaver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegexCompiler.cs" />
     <Compile Include="RegexDefinition.cs" />
     <Compile Include="RegexMethod.cs" />
     <Compile Include="RegexReference.cs" />
