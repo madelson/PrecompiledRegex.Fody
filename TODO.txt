@@ -1,7 +1,6 @@
 - consider better support for handling branching during argument detection (basic block analysis?)
 - test case where regex references are branch targets (since they get replaced/removed)
 - add logging (e. g. regex compile errors, no impact warnings, logging about each regex and why it can or can't be converted etc)
-- avoid re-creating compiled assembly if we don't need to (using hash attribute?). Hash should include tool's version
 - consider using InternalsVisibleTo + non public on compiled regex assembly
 - consider alternate ways to package assembly (e. g. runtime load from resource, copy-in)
 - consider options to expose in Fody element
