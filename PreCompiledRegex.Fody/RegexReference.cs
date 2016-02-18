@@ -27,7 +27,7 @@ namespace PreCompiledRegex.Fody
 
         public RegexDefinition Definition => new RegexDefinition(
             (string)this.PatternInstruction.Operand, 
-            this.OptionsInstruction != null ? RegexReferenceFinder.TryGetRegexOptions(this.OptionsInstruction).Value : RegexOptions.None
+            this.OptionsInstruction != null ? RegexReferenceExtractor.TryGetRegexOptions(this.OptionsInstruction).Value : RegexOptions.None
         );
     }
 }

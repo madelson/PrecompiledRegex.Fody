@@ -11,92 +11,45 @@ using System.IO;
 
 namespace PreCompiledRegex.Fody
 {
-    internal sealed class TypeProcessor
+    internal sealed class RegexReferenceRewriter
     {
         private readonly WeavingContext context;
-        private readonly RegexReferenceFinder referenceFinder;
-
-        private readonly Dictionary<MethodDefinition, List<RegexDefinition>> replacableRegexDefinitionsByMethod
-            = new Dictionary<MethodDefinition, List<RegexDefinition>>();
-
-        public TypeProcessor(WeavingContext context)
+        private readonly RegexReferenceExtractor referenceExtractor;
+        
+        private RegexReferenceRewriter(WeavingContext context)
         {
             this.context = context;
-            this.referenceFinder = new RegexReferenceFinder(context);
+            this.referenceExtractor = new RegexReferenceExtractor(context, log: false);
         }
 
-        public void PreProcessType(TypeDefinition type)
+        public static void RewriteReferences(WeavingContext context, IReadOnlyDictionary<MethodDefinition, List<RegexDefinition>> references)
         {
-            if (type.HasMethods)
-            {
-                foreach (var method in type.Methods)
-                {
-                    this.PreProcessMethod(method);
-                }
-            }
-
-            // recurse on nested types, since Module.Types doesn't contain them
-            if (type.HasNestedTypes)
-            {
-                foreach (var nestedType in type.NestedTypes)
-                {
-                    this.PreProcessType(nestedType);
-                }
-            }
-        }
-
-        private void PreProcessMethod(MethodDefinition method)
-        {
-            if (!method.HasBody) { return; }
-
-            List<RegexDefinition> definitions = null;
-            var referenceFinder = this.referenceFinder;
-            var instructions = method.Body.Instructions;
-            for (var i = 0; i < instructions.Count; ++i)
-            {
-                var instruction = instructions[i];
-                var reference = this.referenceFinder.TryGetRegexReference(instruction);
-                if (reference != null)
-                {
-                    (definitions ?? (definitions = new List<RegexDefinition>())).Add(reference.Definition);
-                }
-            }
-
-            if (definitions != null)
-            {
-                this.replacableRegexDefinitionsByMethod.Add(method, definitions);
-            }
-        }
-
-        public void PostProcessAllTypes()
-        {
-            var regexCompiler = new RegexCompiler(this.context, this.replacableRegexDefinitionsByMethod.SelectMany(kvp => kvp.Value));
+            var regexCompiler = new RegexCompiler(context, references.SelectMany(kvp => kvp.Value));
             var compileResult = regexCompiler.Compile();
             if (!compileResult.Success)
             {
                 return;
             }
 
-            var accessorGenerator = new CompiledRegexAccessorGenerator(this.context, compileResult.Assembly, compileResult.CompiledRegexes);
+            var accessorGenerator = new CompiledRegexAccessorGenerator(context, compileResult.Assembly, compileResult.CompiledRegexes);
             var accessors = accessorGenerator.GenerateAccessors();
 
-            foreach (var referencingMethod in this.replacableRegexDefinitionsByMethod.Keys)
+            var rewriter = new RegexReferenceRewriter(context);
+            foreach (var kvp in references)
             {
-                this.PostProcessMethod(referencingMethod, accessors);
+                rewriter.RewriteMethod(kvp.Key, kvp.Value, accessors);
             }
         }
 
-        private void PostProcessMethod(MethodDefinition method, IReadOnlyDictionary<RegexDefinition, RegexAccessorMethods> regexAccessors)
+        private void RewriteMethod(MethodDefinition method, IReadOnlyCollection<RegexDefinition> definitions, IReadOnlyDictionary<RegexDefinition, RegexAccessorMethods> regexAccessors)
         {
-            var definitions = this.replacableRegexDefinitionsByMethod[method];
-
             method.Body.SimplifyMacros();
             try
             {
                 foreach (var definition in definitions)
                 {
                     var reference = method.Body.Instructions
-                        .Select(this.referenceFinder.TryGetRegexReference)
+                        .Select(this.referenceExtractor.TryGetRegexReference)
                         .First(@ref => @ref != null);
                     var regexMethod = reference.RegexMethod;
                     var accessors = regexAccessors[reference.Definition];

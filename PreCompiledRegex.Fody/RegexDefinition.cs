@@ -36,9 +36,6 @@ namespace PreCompiledRegex.Fody
                 ^ EqualityComparer<RegexOptions>.Default.GetHashCode(this.Options);
         }
 
-        public override string ToString()
-        {
-            return base.ToString();
-        }
+        public override string ToString() => $"({this.Pattern.Replace("\r", @"\r").Replace("\n", @"\n")}, {this.Options})";
     }
 }

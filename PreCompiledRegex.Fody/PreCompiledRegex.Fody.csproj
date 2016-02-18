@@ -68,10 +68,11 @@
     <Compile Include="RegexDefinition.cs" />
     <Compile Include="RegexMethod.cs" />
     <Compile Include="RegexReference.cs" />
+    <Compile Include="RegexReferenceExtractor.cs" />
     <Compile Include="RegexReferenceFinder.cs" />
     <Compile Include="SimpleArgumentLocator.cs" />
     <Compile Include="TypeCopier.cs" />
-    <Compile Include="TypeProcessor.cs" />
+    <Compile Include="RegexReferenceRewriter.cs" />
     <Compile Include="WeavingContext.cs" />
   </ItemGroup>
   <ItemGroup>

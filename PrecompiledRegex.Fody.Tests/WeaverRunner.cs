@@ -32,6 +32,13 @@ namespace PrecompiledRegex.Fody.Tests
             {
                 ModuleDefinition = moduleDefinition,
                 AssemblyFilePath = newAssemblyPath,
+
+                LogDebug = m => Console.WriteLine($"DEBUG {m}"),
+                LogInfo = m => Console.WriteLine($"INFO {m}"),
+                LogWarning = m => Console.WriteLine($"WARNING {m}"),
+                LogWarningPoint = (m, s) => Console.WriteLine($"WARNING at {s}: {m}"),
+                LogError = m => Console.WriteLine($"ERROR {m}"),
+                LogErrorPoint = (m, s) => Console.WriteLine($"ERROR at {s}: {m}"),
             };
 
             weavingTask.Execute();

@@ -17,18 +17,33 @@ namespace PreCompiledRegex.Fody
         // injected
         public string AssemblyFilePath { get; set; }
 
+        #region ---- Injected Loggers ----
+        // Will log an MessageImportance.Normal message to MSBuild. OPTIONAL
+        public Action<string> LogDebug { get; set; }
+
+        // Will log an MessageImportance.High message to MSBuild. OPTIONAL
+        public Action<string> LogInfo { get; set; }
+
+        // Will log an warning message to MSBuild. OPTIONAL
+        public Action<string> LogWarning { get; set; }
+
+        // Will log an warning message to MSBuild at a specific point in the code. OPTIONAL
+        public Action<string, SequencePoint> LogWarningPoint { get; set; }
+
+        // Will log an error message to MSBuild. OPTIONAL
+        public Action<string> LogError { get; set; }
+
+        // Will log an error message to MSBuild at a specific point in the code. OPTIONAL
+        public Action<string, SequencePoint> LogErrorPoint { get; set; }
+        #endregion
+
         // required
         public void Execute()
         {
             var context = new WeavingContext(this);
-            var typeProcessor = new TypeProcessor(context);
 
-            foreach (var type in this.ModuleDefinition.Types)
-            {
-                typeProcessor.PreProcessType(type);
-            }
-
-            typeProcessor.PostProcessAllTypes();
+            var references = RegexReferenceFinder.FindAllReferences(context);
+            RegexReferenceRewriter.RewriteReferences(context, references);
         }
     }
 }
