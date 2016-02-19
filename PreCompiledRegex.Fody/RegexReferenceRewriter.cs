@@ -24,20 +24,23 @@ namespace PreCompiledRegex.Fody
 
         public static void RewriteReferences(WeavingContext context, IReadOnlyDictionary<MethodDefinition, List<RegexDefinition>> references)
         {
-            var regexCompiler = new RegexCompiler(context, references.SelectMany(kvp => kvp.Value));
-            var compileResult = regexCompiler.Compile();
-            if (!compileResult.Success)
+            using (context.Step("Rewriting Regex References"))
             {
-                return;
-            }
+                var regexCompiler = new RegexCompiler(context, references.SelectMany(kvp => kvp.Value));
+                var compileResult = regexCompiler.Compile();
+                if (!compileResult.Success)
+                {
+                    return;
+                }
 
-            var accessorGenerator = new CompiledRegexAccessorGenerator(context, compileResult.Assembly, compileResult.CompiledRegexes);
-            var accessors = accessorGenerator.GenerateAccessors();
+                var accessorGenerator = new CompiledRegexAccessorGenerator(context, compileResult.Assembly, compileResult.CompiledRegexes);
+                var accessors = accessorGenerator.GenerateAccessors();
 
-            var rewriter = new RegexReferenceRewriter(context);
-            foreach (var kvp in references)
-            {
-                rewriter.RewriteMethod(kvp.Key, kvp.Value, accessors);
+                var rewriter = new RegexReferenceRewriter(context);
+                foreach (var kvp in references)
+                {
+                    rewriter.RewriteMethod(kvp.Key, kvp.Value, accessors);
+                }
             }
         }
 

@@ -41,9 +41,11 @@ namespace PreCompiledRegex.Fody
         public void Execute()
         {
             var context = new WeavingContext(this);
-
-            var references = RegexReferenceFinder.FindAllReferences(context);
-            RegexReferenceRewriter.RewriteReferences(context, references);
+            using (context.Step(this.GetType().Assembly.GetName().Name + " Weaving"))
+            {
+                var references = RegexReferenceFinder.FindAllReferences(context);
+                RegexReferenceRewriter.RewriteReferences(context, references);
+            }
         }
     }
 }

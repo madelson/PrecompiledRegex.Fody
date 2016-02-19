@@ -23,14 +23,17 @@ namespace PreCompiledRegex.Fody
 
         public static Dictionary<MethodDefinition, List<RegexDefinition>> FindAllReferences(WeavingContext context)
         {
-            var finder = new RegexReferenceFinder(context);
-
-            foreach (var type in context.ModuleDefinition.Types)
+            using (context.Step("Finding Regex References"))
             {
-                finder.FindAllReferences(type);
-            }
+                var finder = new RegexReferenceFinder(context);
 
-            return finder.references;
+                foreach (var type in context.ModuleDefinition.Types)
+                {
+                    finder.FindAllReferences(type);
+                }
+
+                return finder.references;
+            }
         }
 
         public void FindAllReferences(TypeDefinition type)
