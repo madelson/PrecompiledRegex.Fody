@@ -24,7 +24,7 @@ namespace PreCompiledRegex.Fody
             if (!MayBeRegexReference(instruction)) { return null; }
             return this.TryGetRegexReferenceSlow(instruction);
         }
-
+        
         private static bool MayBeRegexReference(Instruction instruction)
         {
             var opCode = instruction.OpCode.Code;

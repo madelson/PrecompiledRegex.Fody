@@ -24,6 +24,11 @@ namespace PreCompiledRegex.Fody
 
         public static void RewriteReferences(WeavingContext context, IReadOnlyDictionary<MethodDefinition, List<RegexDefinition>> references)
         {
+            if (references.Count == 0)
+            {
+                context.LogWarning("The assembly does not contain any regular expressions that can be precompiled. View detailed build output for more information");
+            }
+
             using (context.Step("Rewriting Regex References"))
             {
                 var regexCompiler = new RegexCompiler(context, references.SelectMany(kvp => kvp.Value));
