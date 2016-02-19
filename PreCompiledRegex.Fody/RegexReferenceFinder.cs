@@ -62,10 +62,8 @@ namespace PreCompiledRegex.Fody
 
             List<RegexDefinition> definitions = null;
             var referenceExtractor = this.referenceExtractor;
-            var instructions = method.Body.Instructions;
-            for (var i = 0; i < instructions.Count; ++i)
+            foreach (var instruction in method.Body.Instructions)
             {
-                var instruction = instructions[i];
                 var reference = referenceExtractor.TryGetRegexReference(instruction);
                 if (reference != null)
                 {

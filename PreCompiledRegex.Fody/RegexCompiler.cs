@@ -126,15 +126,12 @@ namespace PreCompiledRegex.Fody
                 Environment.CurrentDirectory = Path.GetDirectoryName(outputPath);
                 Regex.CompileToAssembly(compilationInfos.ToArray(), assemblyName, new[] { descriptionAttribute });
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException) when (this.TryGetRegexParseError(compilationInfos))
             {
-                // todo log
-                throw;
             }
             catch (Exception ex)
             {
-                // todo log
-                throw;
+                this.context.LogError($"Regex compilation failed with {ex.GetType()}: {ex.Message}");
             }
             finally
             {
@@ -142,6 +139,25 @@ namespace PreCompiledRegex.Fody
             }
 
             return AssemblyDefinition.ReadAssembly(outputPath);
+        }
+
+        private bool TryGetRegexParseError(IEnumerable<RegexCompilationInfo> compilationInfos)
+        {
+            var foundRegexError = false;
+            foreach (var regex in compilationInfos)
+            {
+                try
+                {
+                    new Regex(regex.Pattern, regex.Options);
+                }
+                catch (ArgumentException constructorException)
+                {
+                    this.context.LogError($"Invalid regex {new RegexDefinition(regex.Pattern, regex.Options)}: {constructorException.Message}");
+                    foundRegexError = true;
+                }
+            }
+
+            return foundRegexError;
         }
 
         public sealed class Result
