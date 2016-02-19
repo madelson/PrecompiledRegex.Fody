@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreCompiledRegex.Fody", "PreCompiledRegex.Fody\PreCompiledRegex.Fody.csproj", "{1FC2383B-FB35-494B-A1CD-4184DE8F31C5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrecompiledRegex.Fody", "PreCompiledRegex.Fody\PrecompiledRegex.Fody.csproj", "{1FC2383B-FB35-494B-A1CD-4184DE8F31C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AssemblyToProcess", "AssemblyToProcess\AssemblyToProcess.csproj", "{43FF67D2-F616-48FE-8F86-AEE86D584AD1}"
 EndProject

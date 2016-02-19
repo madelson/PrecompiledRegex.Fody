@@ -33,10 +33,12 @@
     <!-- force AssemblyToProcess to build first without actually referencing it. See https://github.com/Fody/BasicFodyAddin -->
     <ProjectReference Include="..\AssemblyToProcess\AssemblyToProcess.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Project>{43FF67D2-F616-48FE-8F86-AEE86D584AD1}</Project>
+      <Name>AssemblyToProcess</Name>
     </ProjectReference>
-    <ProjectReference Include="..\PreCompiledRegex.Fody\PreCompiledRegex.Fody.csproj">
+    <ProjectReference Include="..\PreCompiledRegex.Fody\PrecompiledRegex.Fody.csproj">
       <Project>{1fc2383b-fb35-494b-a1cd-4184de8f31c5}</Project>
-      <Name>PreCompiledRegex.Fody</Name>
+      <Name>PrecompiledRegex.Fody</Name>
     </ProjectReference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">

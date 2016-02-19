@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PreCompiledRegex.Fody
+namespace PrecompiledRegex.Fody
 {
     // code inspired by http://cecil.googlecode.com/svn/trunk/decompiler/Cecil.Decompiler/Cecil.Decompiler.Cil/ControlFlowGraphBuilder.cs
     internal static class SimpleArgumentLocator

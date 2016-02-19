@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Mono.Cecil;
-using PreCompiledRegex.Fody;
+using PrecompiledRegex.Fody;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

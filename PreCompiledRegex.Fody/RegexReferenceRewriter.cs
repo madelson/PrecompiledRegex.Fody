@@ -9,7 +9,7 @@ using Mono.Cecil.Cil;
 using System.Text.RegularExpressions;
 using System.IO;
 
-namespace PreCompiledRegex.Fody
+namespace PrecompiledRegex.Fody
 {
     internal sealed class RegexReferenceRewriter
     {

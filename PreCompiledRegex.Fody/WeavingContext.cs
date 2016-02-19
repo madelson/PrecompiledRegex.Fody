@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PreCompiledRegex.Fody
+namespace PrecompiledRegex.Fody
 {
     internal sealed class WeavingContext
     {

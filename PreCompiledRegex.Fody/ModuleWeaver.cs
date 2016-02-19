@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PreCompiledRegex.Fody
+namespace PrecompiledRegex.Fody
 {
     // see https://github.com/Fody/Fody/wiki/ModuleWeaver
     public sealed class ModuleWeaver

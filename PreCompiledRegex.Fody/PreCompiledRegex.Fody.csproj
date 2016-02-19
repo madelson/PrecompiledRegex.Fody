@@ -7,8 +7,8 @@
     <ProjectGuid>{1FC2383B-FB35-494B-A1CD-4184DE8F31C5}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PreCompiledRegex.Fody</RootNamespace>
-    <AssemblyName>PreCompiledRegex.Fody</AssemblyName>
+    <RootNamespace>PrecompiledRegex.Fody</RootNamespace>
+    <AssemblyName>PrecompiledRegex.Fody</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

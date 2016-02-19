@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace PreCompiledRegex.Fody
+namespace PrecompiledRegex.Fody
 {
     internal sealed class RegexReferenceExtractor
     {
