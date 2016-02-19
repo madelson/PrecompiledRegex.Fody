@@ -32,6 +32,11 @@ namespace PreCompiledRegex.Fody
                     finder.FindAllReferences(type);
                 }
 
+                if (finder.references.Count == 0)
+                {
+                    context.LogWarning("The assembly does not contain any regular expressions that can be precompiled. View detailed build output for more information");
+                }
+
                 return finder.references;
             }
         }
