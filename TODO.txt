@@ -5,5 +5,4 @@
 - consider options to expose in Fody element
 - github repo
 - finalize naming of inline types
-- publish package 
-- test with regexes that don't compile
+- publish package
