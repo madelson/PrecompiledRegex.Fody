@@ -15,11 +15,28 @@ namespace PrecompiledRegex.Fody
         private readonly ModuleWeaver weaver;
         private readonly Stopwatch stopwatch;
 
-        public WeavingContext(ModuleWeaver weaver)
+        private WeavingContext(ModuleWeaver weaver)
         {
             this.weaver = weaver;
             this.stopwatch = Stopwatch.StartNew();
         }
+
+        public static WeavingContext TryCreate(ModuleWeaver weaver)
+        {
+            var context = new WeavingContext(weaver);
+            Options options;
+            string errorMessage;
+            if (!Options.TryParse(weaver.Config, out options, out errorMessage))
+            {
+                context.LogError($"Config '{weaver.Config}' is invalid: {errorMessage}");
+                return null;
+            }
+
+            context.Options = options;
+            return context;
+        }
+
+        public Options Options { get; private set; }
 
         public ModuleDefinition ModuleDefinition => this.weaver.ModuleDefinition;
         public string AssemblyFilePath => this.weaver.AssemblyFilePath;

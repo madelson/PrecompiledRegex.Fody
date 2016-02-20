@@ -62,9 +62,25 @@ namespace PrecompiledRegex.Fody
             var optionsInstruction = regexMethod.OptionsParameterIndex.HasValue
                 ? arguments[regexMethod.OptionsParameterIndex.Value]
                 : null;
-            if (optionsInstruction != null && !TryGetRegexOptions(optionsInstruction).HasValue)
+            RegexOptions options;
+            if (optionsInstruction != null)
             {
-                this.Log($"Options argument to {regexMethod} at {ToString(instruction.SequencePoint)} is not a constant or literal: it will not be precompiled");
+                var extractedOptions = TryGetRegexOptions(optionsInstruction);
+                if (!extractedOptions.HasValue)
+                {
+                    this.Log($"Options argument to {regexMethod} at {ToString(instruction.SequencePoint)} is not a constant or literal: it will not be precompiled");
+                    return null;
+                }
+                options = extractedOptions.Value;
+            }
+            else
+            {
+                options = RegexOptions.None;
+            }
+
+            if (this.context.Options.Include == IncludeFilter.Compiled && !options.HasFlag(RegexOptions.Compiled))
+            {
+                this.Log($"Options argument to {regexMethod} at {ToString(instruction.SequencePoint)} does not have the '{nameof(RegexOptions.Compiled)}' flag: it will not be precompiled");
                 return null;
             }
 

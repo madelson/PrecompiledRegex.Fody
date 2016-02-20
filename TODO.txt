@@ -4,5 +4,7 @@
 - consider alternate ways to package assembly (e. g. runtime load from resource, copy-in)
 - consider options to expose in Fody element
 - github repo
+- readme
 - finalize naming of inline types
 - publish package
+- consider adding generatedcodeattribute to generated types

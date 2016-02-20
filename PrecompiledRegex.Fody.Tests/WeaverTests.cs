@@ -80,5 +80,17 @@ namespace PrecompiledRegex.Fody.Tests
                 TestTypeReplacesAll(nestedType);
             }
         }
+
+        [TestMethod]
+        public void TestCompiledOnlyOption()
+        {
+            var assembly = WeaverRunner.Create("CompiledAssemblyToProcess", "<PrecompiledRegex Include='Compiled' />").Assembly;
+
+            var beforeAssemblyPath = assembly.Location.Replace("2.dll", ".dll");
+            Verifier.Verify(beforeAssemblyPath: beforeAssemblyPath, afterAssemblyPath: assembly.Location);
+
+            dynamic instance = Activator.CreateInstance(assembly.GetType("CompiledAssemblyToProcess.CompiledOnlyRegexExamples"));
+            instance.TestCompiledOnly();
+        }
     }
 }

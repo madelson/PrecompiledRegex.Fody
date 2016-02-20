@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace PrecompiledRegex.Fody
 {
@@ -13,6 +14,9 @@ namespace PrecompiledRegex.Fody
     {
         // required, injected
         public ModuleDefinition ModuleDefinition { get; set; }
+
+        // injected
+        public XElement Config { get; set; }
 
         // injected
         public string AssemblyFilePath { get; set; }
@@ -40,11 +44,14 @@ namespace PrecompiledRegex.Fody
         // required
         public void Execute()
         {
-            var context = new WeavingContext(this);
-            using (context.Step(this.GetType().Assembly.GetName().Name + " Weaving"))
+            var context = WeavingContext.TryCreate(this);
+            if (context != null)
             {
-                var references = RegexReferenceFinder.FindAllReferences(context);
-                RegexReferenceRewriter.RewriteReferences(context, references);
+                using (context.Step(this.GetType().Assembly.GetName().Name + " Weaving"))
+                {
+                    var references = RegexReferenceFinder.FindAllReferences(context);
+                    RegexReferenceRewriter.RewriteReferences(context, references);
+                }
             }
         }
     }

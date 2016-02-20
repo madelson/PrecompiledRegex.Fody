@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="CompiledRegexAccessTypeGenerator.cs" />
     <Compile Include="ModuleWeaver.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegexCompiler.cs" />
     <Compile Include="RegexDefinition.cs" />

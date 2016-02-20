@@ -42,6 +42,12 @@
       <Project>{43FF67D2-F616-48FE-8F86-AEE86D584AD1}</Project>
       <Name>AssemblyToProcess</Name>
     </ProjectReference>
+    <!-- force CompiledAssemblyToProcess to build first without actually referencing it. See https://github.com/Fody/BasicFodyAddin -->
+    <ProjectReference Include="..\CompiledAssemblyToProcess\CompiledAssemblyToProcess.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Project>{43FF67D2-F616-48FE-8F86-AEE86D584AD1}</Project>
+      <Name>AssemblyToProcess</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PreCompiledRegex.Fody\PrecompiledRegex.Fody.csproj">
       <Project>{1fc2383b-fb35-494b-a1cd-4184de8f31c5}</Project>
       <Name>PrecompiledRegex.Fody</Name>
@@ -75,6 +81,7 @@
   <ItemGroup>
     <Compile Include="ErrorAssemblyTest.cs" />
     <Compile Include="MockAssemblyResolver.cs" />
+    <Compile Include="OptionsTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegexExamplesTests.cs" />
     <Compile Include="Verifier.cs" />

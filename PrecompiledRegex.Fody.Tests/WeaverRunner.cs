@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace PrecompiledRegex.Fody.Tests
 {
@@ -17,7 +18,7 @@ namespace PrecompiledRegex.Fody.Tests
 
         public static Assembly DefaultAssembly => LazyDefaultAssembly.Value;
 
-        public static Result Create(string projectName)
+        public static Result Create(string projectName, string config = null)
         {
             var projectPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $@"..\..\..\{projectName}\{projectName}.csproj"));
             var assemblyPath = Path.Combine(Path.GetDirectoryName(projectPath), $@"bin\Debug\{projectName}.dll");
@@ -37,6 +38,7 @@ namespace PrecompiledRegex.Fody.Tests
             {
                 ModuleDefinition = moduleDefinition,
                 AssemblyFilePath = newAssemblyPath,
+                Config = config != null ? XElement.Parse(config) : new XElement("PrecompiledRegex"),
 
                 LogDebug = m => { debugMessages.Add(m); Console.WriteLine($"DEBUG {m}"); },
                 LogInfo = m => { infoMessages.Add(m); Console.WriteLine($"INFO {m}"); },
