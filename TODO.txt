@@ -2,7 +2,6 @@
 - test case where regex references are branch targets (since they get replaced/removed)
 - consider using InternalsVisibleTo + non public on compiled regex assembly
 - consider alternate ways to package assembly (e. g. runtime load from resource, copy-in)
-- consider options to expose in Fody element
 - github repo
 - readme
 - finalize naming of inline types
