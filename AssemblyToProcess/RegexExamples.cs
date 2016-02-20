@@ -156,6 +156,8 @@ namespace AssemblyToProcess
             TestHelper.ShouldThrow<RegexMatchTimeoutException>(() => new Regex(NotPrimeNumberPattern, RegexOptions.None, TimeSpan.FromTicks(1)).IsMatch(hugeString));
             TestHelper.ShouldThrow<RegexMatchTimeoutException>(() => Regex.IsMatch(hugeString, @"^1?$|^(11+?)\1+$", RegexOptions.None, TimeSpan.FromTicks(1)));
             Regex.IsMatch(hugeString, NotPrimeNumberPattern, RegexOptions.None, TimeSpan.FromHours(1)).ShouldEqual(true);
+
+            TestHelper.ShouldThrow<ArgumentOutOfRangeException>(() => new Regex("abc", RegexOptions.None, TimeSpan.FromSeconds(-2)));
         }
 
         private class ClassWithInitializers

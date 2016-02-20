@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace PrecompiledRegex.Fody
 {
+    /// <summary>
+    /// Idea for the future: we could copy the generated regex types into the assembly rather than 
+    /// </summary>
     internal sealed class TypeCopier
     {
         private readonly ModuleDefinition from, to;
