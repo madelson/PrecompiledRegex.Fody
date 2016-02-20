@@ -13,14 +13,14 @@ namespace PrecompiledRegex.Fody.Tests
 {
     internal class WeaverRunner
     {
-        private static readonly Lazy<Assembly> LazyDefaultAssembly = new Lazy<Assembly>(Create);
+        private static readonly Lazy<Assembly> LazyDefaultAssembly = new Lazy<Assembly>(() => Create("AssemblyToProcess").Assembly);
 
         public static Assembly DefaultAssembly => LazyDefaultAssembly.Value;
 
-        public static Assembly Create()
+        public static Result Create(string projectName)
         {
-            var projectPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, @"..\..\..\AssemblyToProcess\AssemblyToProcess.csproj"));
-            var assemblyPath = Path.Combine(Path.GetDirectoryName(projectPath), @"bin\Debug\AssemblyToProcess.dll");
+            var projectPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, $@"..\..\..\{projectName}\{projectName}.csproj"));
+            var assemblyPath = Path.Combine(Path.GetDirectoryName(projectPath), $@"bin\Debug\{projectName}.dll");
 
             var oldAssemblies = Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*.dll");
 
@@ -28,17 +28,22 @@ namespace PrecompiledRegex.Fody.Tests
             File.Copy(assemblyPath, newAssemblyPath, overwrite: true);
 
             var moduleDefinition = ModuleDefinition.ReadModule(newAssemblyPath);
+
+            var debugMessages = new List<string>();
+            var infoMessages = new List<string>();
+            var errors = new List<string>();
+            var warnings = new List<string>();
             var weavingTask = new ModuleWeaver
             {
                 ModuleDefinition = moduleDefinition,
                 AssemblyFilePath = newAssemblyPath,
 
-                LogDebug = m => Console.WriteLine($"DEBUG {m}"),
-                LogInfo = m => Console.WriteLine($"INFO {m}"),
-                LogWarning = m => Console.WriteLine($"WARNING {m}"),
-                LogWarningPoint = (m, s) => Console.WriteLine($"WARNING at {s}: {m}"),
-                LogError = m => Console.WriteLine($"ERROR {m}"),
-                LogErrorPoint = (m, s) => Console.WriteLine($"ERROR at {s}: {m}"),
+                LogDebug = m => { debugMessages.Add(m); Console.WriteLine($"DEBUG {m}"); },
+                LogInfo = m => { infoMessages.Add(m); Console.WriteLine($"INFO {m}"); },
+                LogWarning = m => { warnings.Add(m); Console.WriteLine($"WARNING {m}"); },
+                LogWarningPoint = (m, s) => { warnings.Add(m); Console.WriteLine($"WARNING at {s}: {m}"); },
+                LogError = m => { errors.Add(m); Console.WriteLine($"ERROR {m}"); },
+                LogErrorPoint = (m, s) => { errors.Add(m); Console.WriteLine($"ERROR at {s}: {m}"); },
             };
 
             weavingTask.Execute();
@@ -49,7 +54,17 @@ namespace PrecompiledRegex.Fody.Tests
                 .Except(oldAssemblies.Concat(new[] { newAssemblyPath }));
             foreach (var otherNewAssembly in otherNewAssemblies) { Assembly.LoadFrom(otherNewAssembly); }
 
-            return Assembly.LoadFrom(newAssemblyPath);
+            var assembly = Assembly.LoadFrom(newAssemblyPath);
+            return new Result { Assembly = assembly, DebugMessages = debugMessages, InfoMessages = infoMessages, Warnings = warnings, Errors = errors };
+        }
+
+        public class Result
+        {
+            public Assembly Assembly { get; set; }
+            public List<string> DebugMessages { get; set; }
+            public List<string> InfoMessages { get; set; }
+            public List<string> Warnings { get; set; }
+            public List<string> Errors { get; set; }
         }
     }
 }

@@ -27,6 +27,7 @@ namespace PrecompiledRegex.Fody
             if (references.Count == 0)
             {
                 context.LogWarning("The assembly does not contain any regular expressions that can be precompiled. View detailed build output for more information");
+                return;
             }
 
             using (context.Step("Rewriting Regex References"))

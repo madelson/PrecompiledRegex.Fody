@@ -42,20 +42,20 @@ namespace PrecompiledRegex.Fody
             string errorMessage;
             if (!SimpleArgumentLocator.TryFindArgumentInstructions(instruction, out arguments, out errorMessage))
             {
-                this.Log($"Could not determine arguments to {regexMethod} at {instruction.SequencePoint}: {errorMessage}: it will not be precompiled");
+                this.Log($"Could not determine arguments to {regexMethod} at {ToString(instruction.SequencePoint)}: {errorMessage}: it will not be precompiled");
                 return null;
             }
 
             if (arguments.Length < regexMethod.Parameters.Count)
             {
-                this.Log($"Could not determine enough arguments to {regexMethod} at {instruction.SequencePoint}: it will not be precompiled");
+                this.Log($"Could not determine enough arguments to {regexMethod} at {ToString(instruction.SequencePoint)}: it will not be precompiled");
                 return null;
             }
 
             var patternInstruction = arguments[regexMethod.PatternParameterIndex];
             if (arguments[regexMethod.PatternParameterIndex].OpCode.Code != Code.Ldstr)
             {
-                this.Log($"Pattern argument to {regexMethod} at {instruction.SequencePoint} is not a constant or literal: it will not be precompiled");
+                this.Log($"Pattern argument to {regexMethod} at {ToString(instruction.SequencePoint)} is not a constant or literal: it will not be precompiled");
                 return null;
             }
 
@@ -64,13 +64,20 @@ namespace PrecompiledRegex.Fody
                 : null;
             if (optionsInstruction != null && !TryGetRegexOptions(optionsInstruction).HasValue)
             {
-                this.Log($"Options argument to {regexMethod} at {instruction.SequencePoint} is not a constant or literal: it will not be precompiled");
+                this.Log($"Options argument to {regexMethod} at {ToString(instruction.SequencePoint)} is not a constant or literal: it will not be precompiled");
                 return null;
             }
 
             var reference = new RegexReference(instruction, pattern: patternInstruction, options: optionsInstruction);
-            this.Log($"Found precompilable regex {reference.Definition} at {instruction.SequencePoint}");
+            this.Log($"Found precompilable regex {reference.Definition} at {ToString(instruction.SequencePoint)}");
             return reference;
+        }
+
+        private static string ToString(SequencePoint sequencePoint)
+        {
+            return sequencePoint == null
+                ? "[UNKNOWN LOCATION]"
+                : $"{sequencePoint.Document.Url}:line {sequencePoint.StartLine}";
         }
 
         private void Log(string message)

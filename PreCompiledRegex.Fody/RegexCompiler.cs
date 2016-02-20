@@ -128,10 +128,12 @@ namespace PrecompiledRegex.Fody
             }
             catch (ArgumentException) when (this.TryGetRegexParseError(compilationInfos))
             {
+                return null;
             }
             catch (Exception ex)
             {
                 this.context.LogError($"Regex compilation failed with {ex.GetType()}: {ex.Message}");
+                return null;
             }
             finally
             {
