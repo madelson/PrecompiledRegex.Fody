@@ -1,0 +1,24 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata minClientVersion="2.8">
+    <id>PrecompiledRegex.Fody</id>
+    <version>1.0.0</version>
+    <title>PrecompiledRegex.Fody</title>
+    <authors>Michael Adelson</authors>
+    <owners>Michael Adelson</owners>
+    <developmentDependency>true</developmentDependency>
+    <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
+    <projectUrl>http://todo</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>TODO</description>
+    <tags>Regex, ILWeaving, Fody, Cecil</tags>
+    <dependencies>
+      <dependency id="Fody" version="1.29.4"/>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Debug\PrecompiledRegex.Fody.pdb" target="" />
+    <file src="bin\Debug\PrecompiledRegex.Fody.dll" target="" />
+    <file src="Tools\*.ps1" target="Tools" />
+  </files>
+</package>

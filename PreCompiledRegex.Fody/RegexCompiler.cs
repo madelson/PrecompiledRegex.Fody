@@ -102,7 +102,7 @@ namespace PrecompiledRegex.Fody
                 return null;
             }
 
-            // todo log
+            this.context.LogInfo($"Re-using cached assembly {outputPath}");
             return assembly;
         }
 
@@ -114,6 +114,7 @@ namespace PrecompiledRegex.Fody
             );
 
             var outputPath = this.GetOutputPath(assemblyName);
+            this.context.LogInfo($"Generating {outputPath}");
             if (File.Exists(outputPath))
             {
                 File.Delete(outputPath);
