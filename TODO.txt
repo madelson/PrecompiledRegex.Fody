@@ -1,9 +1,8 @@
 - consider better support for handling branching during argument detection (basic block analysis?)
 - test case where regex references are branch targets (since they get replaced/removed)
-- consider using InternalsVisibleTo + non public on compiled regex assembly
-- consider alternate ways to package assembly (e. g. runtime load from resource, copy-in)
+- consider exposing alternate ways to package assembly (e. g. keeping separate)
 - github repo
 - readme
-- finalize naming of inline types
+- finalize naming of inline types (pick one naming convention for new types instead of two... should we give the temp assembly a temp name?)
 - publish package
 - consider adding generatedcodeattribute to generated types

@@ -13,16 +13,20 @@ namespace PrecompiledRegex.Fody
     internal sealed class CompiledRegexAccessorGenerator
     {
         private readonly WeavingContext context;
-        private readonly AssemblyDefinition regexAssembly;
+        /// <summary>
+        /// This will either be the context module (if we're merging) or the module from a separate assembly.
+        /// For now this code is written to support both
+        /// </summary>
+        private readonly ModuleDefinition regexModule;
         private readonly IReadOnlyCollection<RegexCompilationInfo> compiledRegexes;
 
         public CompiledRegexAccessorGenerator(
             WeavingContext context, 
-            AssemblyDefinition regexAssembly, 
+            ModuleDefinition regexModule, 
             IReadOnlyCollection<RegexCompilationInfo> compiledRegexes)
         {
             this.context = context;
-            this.regexAssembly = regexAssembly;
+            this.regexModule = regexModule;
             this.compiledRegexes = compiledRegexes;
         }
 
@@ -57,7 +61,7 @@ namespace PrecompiledRegex.Fody
             var epilogStartInstruction = Instruction.Create(OpCodes.Ldsfld, field);
             // Branch if value on stack is true, not null or non-zero
             il.Emit(OpCodes.Brtrue, epilogStartInstruction);
-            il.Emit(OpCodes.Newobj, this.Module.ImportReference(this.regexAssembly.MainModule.GetType(regex.Namespace + "." + regex.Name).Methods.Single(c => c.IsConstructor && !c.IsStatic && !c.HasParameters)));
+            il.Emit(OpCodes.Newobj, this.ImportIfNeeded(this.regexModule.GetType(regex.Namespace + "." + regex.Name).Methods.Single(c => c.IsConstructor && !c.IsStatic && !c.HasParameters)));
             il.Emit(OpCodes.Stsfld, field);
             il.Append(epilogStartInstruction);
             il.Emit(OpCodes.Ret);
@@ -98,8 +102,8 @@ namespace PrecompiledRegex.Fody
             il.Append(startBuildingRegexInstruction);
             il.Emit(
                 OpCodes.Newobj,
-                this.Module.ImportReference(
-                    this.regexAssembly.MainModule
+                this.ImportIfNeeded(
+                    this.regexModule
                         .GetType(regex.Namespace + "." + regex.Name)
                         .Methods
                         .Single(c => c.IsConstructor && !c.IsStatic && c.Parameters.Count == 1 && c.Parameters[0].ParameterType.Name == nameof(TimeSpan))
@@ -115,6 +119,13 @@ namespace PrecompiledRegex.Fody
             accessor.Body.OptimizeMacros();
 
             return accessor;
+        }
+
+        private MethodReference ImportIfNeeded(MethodDefinition regexMethod)
+        {
+            return this.regexModule == this.Module
+                ? regexMethod
+                : this.Module.ImportReference(regexMethod);
         }
     }
 

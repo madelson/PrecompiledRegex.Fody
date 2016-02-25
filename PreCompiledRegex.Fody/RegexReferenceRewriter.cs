@@ -42,7 +42,9 @@ namespace PrecompiledRegex.Fody
                     return;
                 }
 
-                var accessorGenerator = new CompiledRegexAccessorGenerator(context, compileResult.Assembly, compileResult.CompiledRegexes);
+                TypeMerger.MergeTypes(from: compileResult.Assembly.MainModule, to: context.ModuleDefinition);
+
+                var accessorGenerator = new CompiledRegexAccessorGenerator(context, context.ModuleDefinition, compileResult.CompiledRegexes);
                 var accessors = accessorGenerator.GenerateAccessors();
 
                 var rewriter = new RegexReferenceRewriter(context);

@@ -49,7 +49,7 @@ namespace PrecompiledRegex.Fody
         {
             return this.regexes.OrderBy(r => r.Pattern)
                 .ThenBy(r => r.Options)
-                .Select((r, index) => new RegexCompilationInfo(r.Pattern, r.Options, fullnamespace: assemblyName.Name, name: "PrecompiledRegex" + index, ispublic: true))
+                .Select((r, index) => new RegexCompilationInfo(r.Pattern, r.Options, fullnamespace: assemblyName.Name, name: "PrecompiledRegex" + index, ispublic: false))
                 .ToList();
         }
 

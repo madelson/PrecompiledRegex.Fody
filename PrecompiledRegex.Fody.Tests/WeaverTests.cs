@@ -20,6 +20,18 @@ namespace PrecompiledRegex.Fody.Tests
         {
             var beforeAssemblyPath = WeaverRunner.DefaultAssembly.Location.Replace("2.dll", ".dll");
 
+            try
+            {
+                WeaverRunner.DefaultAssembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                foreach (var le in ex.LoaderExceptions)
+                {
+                    Console.WriteLine(le.Message);
+                }
+            }
+
             Verifier.Verify(beforeAssemblyPath: beforeAssemblyPath, afterAssemblyPath: WeaverRunner.DefaultAssembly.Location);
         }
 

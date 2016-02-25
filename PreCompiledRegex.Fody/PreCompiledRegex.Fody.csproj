@@ -18,7 +18,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -72,8 +72,8 @@
     <Compile Include="RegexReferenceExtractor.cs" />
     <Compile Include="RegexReferenceFinder.cs" />
     <Compile Include="SimpleArgumentLocator.cs" />
-    <Compile Include="TypeCopier.cs" />
     <Compile Include="RegexReferenceRewriter.cs" />
+    <Compile Include="TypeMerger.cs" />
     <Compile Include="WeavingContext.cs" />
   </ItemGroup>
   <ItemGroup>

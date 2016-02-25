@@ -51,10 +51,11 @@ namespace PrecompiledRegex.Fody.Tests
             weavingTask.Execute();
             moduleDefinition.Write(newAssemblyPath);
 
-            // loadfrom vs loadfile: https://msdn.microsoft.com/en-us/library/dd153782(v=vs.110).aspx
-            var otherNewAssemblies = Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*.dll")
-                .Except(oldAssemblies.Concat(new[] { newAssemblyPath }));
-            foreach (var otherNewAssembly in otherNewAssemblies) { Assembly.LoadFrom(otherNewAssembly); }
+            // this code is needed if we keep the assembly separate instead of merging it
+            //// loadfrom vs loadfile: https://msdn.microsoft.com/en-us/library/dd153782(v=vs.110).aspx
+            //var otherNewAssemblies = Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*.dll")
+            //    .Except(oldAssemblies.Concat(new[] { newAssemblyPath }));
+            //foreach (var otherNewAssembly in otherNewAssemblies) { Assembly.LoadFrom(otherNewAssembly); }
 
             var assembly = Assembly.LoadFrom(newAssemblyPath);
             return new Result { Assembly = assembly, DebugMessages = debugMessages, InfoMessages = infoMessages, Warnings = warnings, Errors = errors };
