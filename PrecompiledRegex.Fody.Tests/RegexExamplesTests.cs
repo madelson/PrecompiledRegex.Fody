@@ -50,6 +50,12 @@ namespace PrecompiledRegex.Fody.Tests
         [TestMethod]
         public void TestTimeouts() => GetExamples().TestTimeouts();
 
+        [TestMethod]
+        public void TestComplexPattern() => GetExamples().TestComplexPattern();
+
+        [TestMethod]
+        public void TestCapturing() => GetExamples().TestCapturing();
+
         private static dynamic GetExamples() => Activator.CreateInstance(WeaverRunner.DefaultAssembly.GetType("AssemblyToProcess.RegexExamples"));
     }
 }

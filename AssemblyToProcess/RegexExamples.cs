@@ -160,6 +160,32 @@ namespace AssemblyToProcess
             TestHelper.ShouldThrow<ArgumentOutOfRangeException>(() => new Regex("abc", RegexOptions.None, TimeSpan.FromSeconds(-2)));
         }
 
+        public void TestComplexPattern()
+        {
+            var rfcEmailRegex = new Regex(@"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|""(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*"")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])", RegexOptions.IgnoreCase);
+            rfcEmailRegex.IsMatch("foo@foo.com").ShouldEqual(true);
+            rfcEmailRegex.IsMatch("foo").ShouldEqual(false);
+        }
+
+        public void TestCapturing()
+        {
+            var regex = new Regex(@"^(?<base>[-+]?[0-9]*\.?[0-9]+)([eE](?<exponent>[-+]?[0-9]+))?$", RegexOptions.ExplicitCapture);
+
+            var match1 = regex.Match("7");
+            match1.Success.ShouldEqual(true);
+            match1.Groups["base"].Success.ShouldEqual(true);
+            match1.Groups["base"].Value.ShouldEqual("7");
+            match1.Groups["exponent"].Success.ShouldEqual(false);
+
+            var match2 = regex.Match("-3.5e+123");
+            match2.Success.ShouldEqual(true);
+            match2.Groups["base"].Success.ShouldEqual(true);
+            match2.Groups["base"].Value.ShouldEqual("-3.5");
+            match2.Groups["exponent"].Success.ShouldEqual(true);
+            match2.Groups["exponent"].Value.ShouldEqual("+123");
+
+        }
+
         private class ClassWithInitializers
         {
             public static Regex StaticRegex { get; } = new Regex("abc", RegexOptions.IgnoreCase);
