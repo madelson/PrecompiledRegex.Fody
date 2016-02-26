@@ -87,6 +87,7 @@
     <Compile Include="Verifier.cs" />
     <Compile Include="WeaverRunner.cs" />
     <Compile Include="WeaverTests.cs" />
+    <Compile Include="WeavingContextTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -34,7 +34,7 @@ namespace PrecompiledRegex.Fody
 
         public Dictionary<RegexDefinition, RegexAccessorMethods> GenerateAccessors()
         {
-            var accessorType = new TypeDefinition("PrecompiledRegex.Fody", "RegularExpressions", TypeAttributes.NotPublic | TypeAttributes.Sealed);
+            var accessorType = new TypeDefinition(this.context.GeneratedTypeNamespace, "RegularExpressions", TypeAttributes.NotPublic | TypeAttributes.Sealed);
             accessorType.BaseType = this.Module.TypeSystem.Object;
             this.Module.Types.Add(accessorType);
 

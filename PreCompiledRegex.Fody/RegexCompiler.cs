@@ -49,7 +49,16 @@ namespace PrecompiledRegex.Fody
         {
             return this.regexes.OrderBy(r => r.Pattern)
                 .ThenBy(r => r.Options)
-                .Select((r, index) => new RegexCompilationInfo(r.Pattern, r.Options, fullnamespace: assemblyName.Name, name: "PrecompiledRegex" + index, ispublic: false))
+                .Select((r, index) => new RegexCompilationInfo(
+                    r.Pattern, 
+                    r.Options, 
+                    fullnamespace: this.context.GeneratedTypeNamespace,
+                    // name each type PrecompiledRegex001, 002 etc. Indices start at 1 to match how the
+                    // system regex compiler names the factory and runner types. We use padding so that the
+                    // type names will sort nicely when decompiled
+                    name: string.Format("PrecompiledRegex{0:000}", (index + 1)), 
+                    ispublic: false
+                ))
                 .ToList();
         }
 

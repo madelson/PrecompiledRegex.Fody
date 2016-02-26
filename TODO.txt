@@ -3,6 +3,5 @@
 - consider exposing alternate ways to package assembly (e. g. keeping separate)
 - github repo
 - readme
-- finalize naming of inline types (pick one naming convention for new types instead of two... should we give the temp assembly a temp name?)
 - publish package
 - consider adding generatedcodeattribute to generated types
