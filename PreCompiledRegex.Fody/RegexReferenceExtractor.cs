@@ -83,7 +83,7 @@ namespace PrecompiledRegex.Fody
                 this.Log($"Options argument to {regexMethod} at {ToString(instruction.SequencePoint)} does not have the '{nameof(RegexOptions.Compiled)}' flag: it will not be precompiled");
                 return null;
             }
-
+            
             var reference = new RegexReference(instruction, pattern: patternInstruction, options: optionsInstruction);
             this.Log($"Found precompilable regex {reference.Definition} at {ToString(instruction.SequencePoint)}");
             return reference;
@@ -112,10 +112,10 @@ namespace PrecompiledRegex.Fody
                 case Code.Ldc_I4_2: return (RegexOptions)2;
                 case Code.Ldc_I4_3: return (RegexOptions)3;
                 case Code.Ldc_I4_4: return (RegexOptions)4;
-                case Code.Ldc_I4_5: return (RegexOptions)4;
-                case Code.Ldc_I4_6: return (RegexOptions)4;
-                case Code.Ldc_I4_7: return (RegexOptions)4;
-                case Code.Ldc_I4_8: return (RegexOptions)4;
+                case Code.Ldc_I4_5: return (RegexOptions)5;
+                case Code.Ldc_I4_6: return (RegexOptions)6;
+                case Code.Ldc_I4_7: return (RegexOptions)7;
+                case Code.Ldc_I4_8: return (RegexOptions)8;
                 case Code.Ldc_I4_M1: return (RegexOptions)(-1);
                 case Code.Ldc_I4_S: return (RegexOptions)(sbyte)(instruction.Operand);
                 default: return null;
