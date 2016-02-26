@@ -27,7 +27,7 @@ namespace PrecompiledRegex.Fody
                     }
                     else
                     {
-                        errorMessage = $"Unexpected {nameof(options.NoOpBehavior)} value '{attribute.Value}': expected one of [{string.Join(", ", Enum.GetValues(typeof(NoOpBehavior)))}]";
+                        errorMessage = $"Unexpected {nameof(options.NoOpBehavior)} value '{attribute.Value}': expected one of [{string.Join(", ", (NoOpBehavior[])Enum.GetValues(typeof(NoOpBehavior)))}]";
                         options = null;
                         return false;
                     }
@@ -41,7 +41,7 @@ namespace PrecompiledRegex.Fody
                     }
                     else
                     {
-                        errorMessage = $"Unexpected {nameof(options.Include)} value '{attribute.Value}': expected one of [{string.Join(", ", Enum.GetValues(typeof(IncludeFilter)))}]";
+                        errorMessage = $"Unexpected {nameof(options.Include)} value '{attribute.Value}': expected one of [{string.Join(", ", (IncludeFilter[])Enum.GetValues(typeof(IncludeFilter)))}]";
                         options = null;
                         return false;
                     }

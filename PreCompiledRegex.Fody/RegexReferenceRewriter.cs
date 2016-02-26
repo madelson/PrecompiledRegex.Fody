@@ -64,7 +64,8 @@ namespace PrecompiledRegex.Fody
                 {
                     var reference = method.Body.Instructions
                         .Select(this.referenceExtractor.TryGetRegexReference)
-                        .First(@ref => @ref != null); // todo log
+                        .First(@ref => @ref != null);
+                    this.context.LogDebug($"Rewriting {reference.Definition} in {method.FullName}");
                     var regexMethod = reference.RegexMethod;
                     var accessors = regexAccessors[reference.Definition];
 

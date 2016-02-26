@@ -14,7 +14,14 @@ namespace PrecompiledRegex.Fody.Package.Tests
         [TestMethod]
         public void BasicTest()
         {
-            Assert.IsTrue(Regex.IsMatch("a", "a"));
+            var result = Regex.IsMatch("a", "a");
+            Assert.IsTrue(result);
+
+            var result2 = new Regex("c") == new Regex("c");
+            Assert.IsTrue(result2);
+
+            var regex = new Regex("xyz", RegexOptions.IgnoreCase);
+            Assert.AreEqual(2, regex.Matches("xyZ,XYz").Count);
         }
     }
 }
