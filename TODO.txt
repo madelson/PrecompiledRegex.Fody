@@ -1,7 +1,7 @@
 - consider better support for handling branching during argument detection (basic block analysis?)
-- test case where regex references are branch targets (since they get replaced/removed)
 - consider exposing alternate ways to package assembly (e. g. keeping separate)
 - github repo
 - readme
-- publish package
+- publish package (fix target framework)
 - consider adding generatedcodeattribute to generated types
+- remove extra CheckTimeout calls from Go() (probably not necessary since it internally only checks 1/1000 times)

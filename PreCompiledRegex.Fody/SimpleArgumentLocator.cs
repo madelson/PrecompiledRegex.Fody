@@ -34,15 +34,6 @@ namespace PrecompiledRegex.Fody
                     return false;
                 }
 
-                var popDelta = GetPopDelta(nextInstructionToAnalyze);
-                if (popDelta == null)
-                {
-                    arguments = null;
-                    errorMessage = $"Control flow too complex: encountered {nextInstructionToAnalyze.OpCode} instruction";
-                    return false;
-                }
-                stackDelta -= popDelta.Value;
-
                 var pushDelta = GetPushDelta(nextInstructionToAnalyze);
                 for (var i = 0; i < pushDelta && argumentList.Count < argumentCount; ++i)
                 {
@@ -53,6 +44,15 @@ namespace PrecompiledRegex.Fody
                         stackDelta = 0; // reset
                     }
                 }
+
+                var popDelta = GetPopDelta(nextInstructionToAnalyze);
+                if (popDelta == null)
+                {
+                    arguments = null;
+                    errorMessage = $"Control flow too complex: encountered {nextInstructionToAnalyze.OpCode} instruction";
+                    return false;
+                }
+                stackDelta -= popDelta.Value;
 
                 nextInstructionToAnalyze = nextInstructionToAnalyze.Previous;
             }

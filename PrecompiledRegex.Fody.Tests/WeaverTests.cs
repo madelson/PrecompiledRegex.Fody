@@ -72,7 +72,8 @@ namespace PrecompiledRegex.Fody.Tests
         {
             foreach (var method in type.Methods)
             {
-                if (method.HasBody)
+                // TestPerformance and it's lambdas deliberately have non-replaced regexes
+                if (method.HasBody && !method.Name.Contains("TestPerformance"))
                 {
                     foreach (var instruction in method.Body.Instructions)
                     {

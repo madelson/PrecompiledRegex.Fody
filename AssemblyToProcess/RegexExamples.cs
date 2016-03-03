@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -183,8 +184,105 @@ namespace AssemblyToProcess
             match2.Groups["base"].Value.ShouldEqual("-3.5");
             match2.Groups["exponent"].Success.ShouldEqual(true);
             match2.Groups["exponent"].Value.ShouldEqual("+123");
-
         }
+
+        const string FollowedByNonWord = @"(?=\W|$)";
+        // from https://github.com/madelson/MedallionOData/blob/master/MedallionOData/Parser/ODataExpressionLanguageTokenizer.cs
+        const string ODataTokenizerPattern = "(?<NullLiteral>null)"
+                        + @"|(?<BinaryLiteral>(binary|X)'[A-Fa-f0-9]+')"
+                        + @"|(?<BooleanLiteral>true|false)"
+                        + @"|(?<DateTimeLiteral>datetime'(?<year>\d\d\d\d)-(?<month>\d\d)-(?<day>\d\d)T(?<hour>\d\d):(?<minute>\d\d)(:(?<second>\d\d)((?<fraction>\.\d+))?)?')"
+                        + @"|(?<Int64Literal>-?[0-9]+L)"
+                        + @"|(?<DecimalLiteral>-?[0-9]+(\.[0-9]+)?(M|m))"
+                        + @"|(?<SingleLiteral>-?[0-9]+\.[0-9]+f)"
+                        + @"|(?<DoubleLiteral>-?[0-9]+((\.[0-9]+)|(E[+-]?[0-9]+)))"
+                        + @"|(?<Int32Literal>-?[0-9]+)"
+                        + @"|(?<GuidLiteral>guid'(?<digits>[A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9]-[A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9]-[A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9]-[A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9]-[A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9][A-Fa-f0-9]))"
+                        + @"|(?<StringLiteral>'(?<chars>(''|[^'])*))'"
+                        + @"|(?<Eq>eq" + FollowedByNonWord + ")"
+                        + @"|(?<Ne>ne" + FollowedByNonWord + ")"
+                        + @"|(?<Gt>gt" + FollowedByNonWord + ")"
+                        + @"|(?<Ge>ge" + FollowedByNonWord + ")"
+                        + @"|(?<Lt>lt" + FollowedByNonWord + ")"
+                        + @"|(?<Le>le" + FollowedByNonWord + ")"
+                        + @"|(?<And>and" + FollowedByNonWord + ")"
+                        + @"|(?<Or>or" + FollowedByNonWord + ")"
+                        + @"|(?<Not>not" + FollowedByNonWord + ")"
+                        + @"|(?<Add>add" + FollowedByNonWord + ")"
+                        + @"|(?<Sub>sub" + FollowedByNonWord + ")"
+                        + @"|(?<Mul>mul" + FollowedByNonWord + ")"
+                        + @"|(?<Div>div" + FollowedByNonWord + ")"
+                        + @"|(?<Mod>mod" + FollowedByNonWord + ")"
+                        + @"|(?<Asc>asc" + FollowedByNonWord + ")"
+                        + @"|(?<Desc>desc" + FollowedByNonWord + ")"
+                        + @"|(?<LeftParen>\()"
+                        + @"|(?<RightParen>\))"
+                        + @"|(?<Star>\*)"
+                        + @"|(?<Identifier>[a-zA-z_][a-zA-Z_0-9]*)"
+                        + @"|(?<WhiteSpace>\s+)"
+                        + @"|(?<Comma>,)"
+                        + @"|(?<Slash>/)"
+                        + @"|(?<Error>.)" // matches any character not already matched
+                        + @"|(?<Eof>$)"; // matches an empty string positioned at the end of the string
+
+        public void TestPerformance()
+        {
+            var notPreCompiled = new Regex(PreventPrecompilation(ODataTokenizerPattern));
+            Func<string, int> precompiledCheck = s => Regex.Matches(s, ODataTokenizerPattern).Count,
+                staticCheck = s => Regex.Matches(s, PreventPrecompilation(ODataTokenizerPattern)).Count,
+                instanceCheck = s => notPreCompiled.Matches(s).Count;
+
+            var stopwatch = Stopwatch.StartNew();
+
+            // warm up
+            const string Expression = "concat(concat(City, ', '), Country) eq 'Berlin, Germany'";
+
+            stopwatch.Restart();
+            precompiledCheck(Expression).ShouldEqual(18);
+            Console.WriteLine($"Precompiled cold start: {stopwatch.ElapsedMilliseconds}ms");
+
+            stopwatch.Restart();
+            staticCheck(Expression).ShouldEqual(18);
+            Console.WriteLine($"Static cold start: {stopwatch.ElapsedMilliseconds}ms");
+
+            stopwatch.Restart();
+            instanceCheck(Expression).ShouldEqual(18);
+            Console.WriteLine($"Instance cold start: {stopwatch.ElapsedMilliseconds}ms");
+
+            stopwatch.Restart();
+            new Regex(PreventPrecompilation(ODataTokenizerPattern), RegexOptions.Compiled).Matches(Expression).Count
+                .ShouldEqual(18);
+            Console.WriteLine($"Compiled cold start: {stopwatch.ElapsedMilliseconds}ms");
+
+            const int Trials = 10000;
+            var cases = new Dictionary<string, Func<string, int>>
+            {
+                { "Precompiled", precompiledCheck },
+                { "Static", staticCheck },
+                { "Instance", instanceCheck },
+            };
+            var results = new Dictionary<string, TimeSpan>();
+
+            foreach (var kvp in cases)
+            {
+                stopwatch.Restart();
+                var func = kvp.Value;
+                for (var i = 0; i < Trials; ++i)
+                {
+                    func(Expression);
+                }
+                results.Add(kvp.Key, stopwatch.Elapsed);
+            }
+
+            foreach (var kvp in results)
+            {
+                Console.WriteLine($"{kvp.Key}: {kvp.Value.TotalMilliseconds:0}ms");
+            }
+        }
+
+
+
+        private static string PreventPrecompilation(string s) => s;
 
         private class ClassWithInitializers
         {
