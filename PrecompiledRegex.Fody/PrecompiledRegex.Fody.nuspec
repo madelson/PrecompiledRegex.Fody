@@ -10,7 +10,8 @@
     <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
     <projectUrl>http://todo</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>TODO</description>
+    <description>Compiles regular expressions as part of the build process for improved performance and validation</description>
+    <iconUrl>https://raw.githubusercontent.com/madelson/PrecompiledRegex.Fody/master/dotStar.ico</iconUrl>
     <tags>Regex, ILWeaving, Fody, Cecil</tags>
     <dependencies>
       <dependency id="Fody" version="1.29.4"/>
