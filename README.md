@@ -64,7 +64,7 @@ internal class RegularExpressions
 ### Supported Methods
 All Regex constructors and both instance and static matching methods (e. g. Matches, Split, Replace) are supported. This includes [overloads which take in a match timeout](https://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regex.matchtimeout(v=vs.110).aspx).
 
-In order to be a candidate for precompilation, the pattern and options arguments *must* be compile-time constants:
+In order to be a candidate for precompilation, the pattern and options arguments **must be compile-time constants**:
 
 ```C#
 // valid
