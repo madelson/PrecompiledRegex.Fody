@@ -8,7 +8,7 @@ PrecompiledRegex.Fody automatically compiles constant regular expressions in you
 
 ## Why Pre-compile?
 
-.NET regular expressions can be [compiled](https://blogs.msdn.microsoft.com/bclteam/2004/11/12/regular-expression-performance-david-gutierrez/) to IL code for maximum performance. While this performance gain is valuable, [http://blog.codinghorror.com/to-compile-or-not-to-compile/](it comes at a non-trivial cold startup cost). 
+.NET regular expressions can be [compiled](https://blogs.msdn.microsoft.com/bclteam/2004/11/12/regular-expression-performance-david-gutierrez/) to IL code for maximum performance. While this performance gain is valuable, [it comes at a non-trivial cold startup cost](http://blog.codinghorror.com/to-compile-or-not-to-compile/). 
 One way to get the best of both worlds is to [pre-compile your regular expressions to an assembly](https://msdn.microsoft.com/en-us/library/9ek5zak6(v=vs.110).aspx). However, this is tedious to do since it happens outside of the normal build process. It also makes your code less readable and more difficult to change. 
 PrecompiledRegex.Fody provides the benefits of precompilation for normal-looking regex code and as part of the standard build process: after the project is built, the tool scans the output assembly for usages of regular expressions and where possible pre-compiles them, merges the generated code into the assembly, and replaces the references with references to the pre-compiled state machines.
 
