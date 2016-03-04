@@ -57,7 +57,7 @@ internal class RegularExpressions
 ### Other Benefits
 
 - **Compile-time validation**: because pre-compiled regular expressions are evaluated at build time, PrecompiledRegex.Fody can and does report a build error if a pattern does not represent a valid regular expression
-- **Object re-use**: For efficiency, pre-compiled regex instances are cached and re-used for the lifetime of the application. However, this is done lazily such that no work happens before a Regex object is actually required. For regexes that have a mtach timeout specified, the last instance will be re-used if the timeouts match. In most real cases (where the timeout for a single pattern does not vary), this should result in 100% re-use.
+- **Object re-use**: For efficiency, pre-compiled regex instances are cached and re-used for the lifetime of the application. However, this is done lazily such that no work happens before a Regex object is actually required. For regexes that have a match timeout specified, the last instance will be re-used if the timeouts match. In most real cases (where the timeout for a single pattern does not vary), this should result in 100% re-use.
 
 ## Functionality and Limitations
 

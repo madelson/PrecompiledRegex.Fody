@@ -5,3 +5,6 @@
 - publish package (fix target framework)
 - consider adding generatedcodeattribute to generated types
 - remove extra CheckTimeout calls from Go() (probably not necessary since it internally only checks 1/1000 times)
+- consider breaking compiles regexes into smaller methods for faster startup
+- see if we're using sequence points incorrectly (see https://github.com/Fody/Fody/issues/102)
+- see if we can improve debugging experience (again, see https://github.com/Fody/Fody/issues/102)
