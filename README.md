@@ -18,7 +18,7 @@ PrecompiledRegex.Fody provides the benefits of precompilation for normal-looking
 ```C#
 public void SomeMethod()
 {
-	var regex = new Regex("f.*c", RegexOptions.IgnoreCase);
+	var regex = new Regex("f.*o", RegexOptions.IgnoreCase);
 
 	if (regex.IsMatch("foo")) { ... }
 	else if (Regex.IsMatch("bar", "b.*r")) { ... }
