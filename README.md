@@ -2,6 +2,8 @@
 
 PrecompiledRegex.Fody automatically compiles constant regular expressions in your code as part of the build process, both improving performance and providing compile-time validation for your regular expressions.
 
+To set it up, all you need to do is install the [NuGet package](https://www.nuget.org/packages/PrecompiledRegex.Fody/) [![NuGet Status](http://img.shields.io/nuget/v/PrecompiledRegex.Fody.svg?style=flat)](https://www.nuget.org/packages/PrecompiledRegex.Fody/).
+
 ## This is an add-in for [Fody](https://github.com/Fody/Fody/) 
 
 [Introduction to Fody](http://github.com/Fody/Fody/wiki/SampleUsage)
